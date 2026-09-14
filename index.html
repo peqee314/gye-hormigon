@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GyE - División Hormigón | Gestión Online</title>
     
-    <!-- Importar Firebase desde la nube (SDKs oficiales) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
         :root {
@@ -72,20 +73,31 @@
             color: var(--gye-yellow);
         }
 
-        .header-date {
-            font-weight: 600;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
             font-size: 14px;
-            color: #bdc3c7;
         }
 
-        .cloud-status {
-            font-size: 11px;
-            background: #27ae60;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-top: 5px;
+        .btn-logout {
+            background-color: var(--gye-red);
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+        }
+        .btn-logout:hover { background-color: #c0392b; }
+
+        /* Pantalla de Login */
+        #login-screen {
+            max-width: 400px;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--gye-yellow);
+            text-align: center;
         }
 
         .dashboard-stats {
@@ -109,6 +121,14 @@
             display: grid;
             grid-template-columns: 1fr 1.6fr;
             gap: 20px;
+        }
+
+        /* Si es operador, ocultamos el formulario y expandimos la tabla */
+        .operator-mode .grid-layout {
+            grid-template-columns: 1fr;
+        }
+        .operator-mode .admin-only {
+            display: none !important;
         }
 
         @media (max-width: 1000px) {
@@ -279,18 +299,12 @@
             border-radius: 6px;
             margin-bottom: 15px;
         }
-        .client-history-box select {
-            margin-top: 5px;
-        }
 
-        .print-header {
-            display: none;
-        }
+        .print-header { display: none; }
 
         @media print {
             body { background-color: white; padding: 0; }
             header, .dashboard-stats, .grid-layout > .card:first-child, .filter-section, .no-print { display: none !important; }
-            
             .print-header {
                 display: flex;
                 justify-content: space-between;
@@ -301,7 +315,6 @@
             }
             .print-header img { height: 40px; }
             .print-header h2 { margin: 0; font-size: 16px; }
-
             .container { max-width: 100%; margin: 0; padding: 0; }
             .grid-layout { display: block; }
             .card { box-shadow: none; border: none; padding: 0; margin: 0; }
@@ -311,26 +324,48 @@
         }
     </style>
 </head>
-<body>
+<body id="app-body">
 
-    <div class="container">
+    <!-- PANTALLA DE INICIO DE SESIÓN -->
+    <div id="login-screen">
+        <h2 style="color: var(--primary-color); margin-top: 0;">GyE - DIVISIÓN HORMIGÓN</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Iniciá sesión para ingresar al sistema</p>
+        <form id="login-form">
+            <div class="form-group">
+                <input type="email" id="login-email" placeholder="Correo electrónico" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="login-password" placeholder="Contraseña" required>
+            </div>
+            <button type="submit">Ingresar al Sistema</button>
+            <div id="login-error" style="color: var(--gye-red); font-size: 12px; margin-top: 10px;"></div>
+        </form>
+    </div>
+
+    <!-- PANTALLA PRINCIPAL DEL SISTEMA (Oculta hasta iniciar sesión) -->
+    <div class="container" id="main-app" style="display: none;">
         <header>
               <div class="header-brand">
                   <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" class="header-logo" onerror="this.style.display='none'">
                   <div>
                       <h1>GyE <span>DIVISIÓN HORMIGÓN</span></h1>
-                      <div style="font-size: 12px; color: #ecf0f1; letter-spacing: 1px;">SISTEMA DE GESTIÓN ONLINE <span class="cloud-status">● En la Nube</span></div>
+                      <div style="font-size: 12px; color: #ecf0f1; letter-spacing: 1px;">SISTEMA DE GESTIÓN ONLINE</div>
                   </div>
               </div>
-              <div class="header-date" id="current-date">Fecha: Hoy</div>
+              <div class="user-info">
+                  <span id="user-display-role">Perfil: --</span>
+                  <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+              </div>
         </header>
 
-        <div class="dashboard-stats">
+        <!-- Métricas Rápidas (Solo Admin) -->
+        <div class="dashboard-stats admin-only">
               <div>Total m³ del Mes: <span id="monthly-total">0.00</span> m³</div>
               <div>Pedidos Registrados (Mes): <span id="monthly-count">0</span></div>
         </div>
 
-        <div class="card no-print">
+        <!-- Historial de Clientes (Solo Admin) -->
+        <div class="card no-print admin-only">
               <h2>Historial de Cliente</h2>
               <div class="client-history-box">
                     <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
@@ -342,7 +377,8 @@
         </div>
 
         <div class="grid-layout">
-              <div class="card">
+              <!-- Formulario de Carga / Edición (Solo Admin) -->
+              <div class="card admin-only">
                     <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
                     <form id="order-form">
                           <input type="hidden" id="edit-id">
@@ -387,6 +423,7 @@
                     </form>
               </div>
 
+              <!-- Vista de Despacho y Parte Diario (Visible para ambos con permisos ajustados) -->
               <div class="card">
                     <h2>
                         <span>Parte Diario de Despacho</span>
@@ -419,7 +456,7 @@
                                       </tr>
                                 </thead>
                                 <tbody id="orders-list">
-                                      <tr><td colspan="7" style="text-align: center; color: #7f8c8d;">Cargando datos desde la nube...</td></tr>
+                                      <tr><td colspan="7" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
                                 </tbody>
                           </table>
                     </div>
@@ -432,23 +469,30 @@
 
     <script>
         // ==========================================
-        // CONFIGURACIÓN DE FIREBASE (¡PEGAR TUS DATOS ACÁ!)
+        // CONFIGURACIÓN DE FIREBASE (Tus credenciales)
         // ==========================================
         const firebaseConfig = {
-    apiKey: "AIzaSyCqhSttXPpa51TV1wOiOyYy-NYqM7EV8w0",
-    authDomain: "gyehormigon.firebaseapp.com",
-    projectId: "gyehormigon",
-    storageBucket: "gyehormigon.firebasestorage.app",
-    messagingSenderId: "1002093938030",
-    appId: "1:1002093938030:web:5b7a1e1ec4818895f2ad7f",
-    measurementId: "G-HGF98N5H95"
-  };
+            apiKey: "REEMPLAZAR_CON_TUS_DATOS_DE_FIREBASE",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            projectId: "tu-proyecto",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
 
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         let orders = [];
+        let currentUserRole = 'admin'; // 'admin' o 'plantista'
+
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const appBody = document.getElementById('app-body');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const userDisplayRole = document.getElementById('user-display-role');
 
         const orderForm = document.getElementById('order-form');
         const ordersList = document.getElementById('orders-list');
@@ -471,7 +515,52 @@
         document.getElementById('fecha').value = todayStr;
         filterDateInput.value = todayStr;
 
-        // Escuchar cambios en tiempo real desde Firestore (Nube)
+        // Control de Sesión con Firebase Auth
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Login exitoso
+                    loginError.textContent = '';
+                })
+                .catch((error) => {
+                    loginError.textContent = "Error: Usuario o contraseña incorrectos.";
+                });
+        });
+
+        function cerrarSesion() {
+            auth.signOut();
+        }
+
+        // Escuchar estado de autenticación
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Usuario logueado. Determinamos rol según el correo
+                loginScreen.style.display = 'none';
+                mainApp.style.display = 'block';
+
+                // Ejemplo: si el mail contiene "plantista" o "planta", se le asigna rol de operador
+                if (user.email.toLowerCase().includes('plantista') || user.email.toLowerCase().includes('planta')) {
+                    currentUserRole = 'plantista';
+                    userDisplayRole.textContent = "Perfil: Plantista / Operador";
+                    appBody.classList.add('operator-mode');
+                } else {
+                    currentUserRole = 'admin';
+                    userDisplayRole.textContent = "Perfil: Administración";
+                    appBody.classList.remove('operator-mode');
+                }
+
+                escucharPedidosEnNube();
+            } else {
+                // Usuario deslogueado
+                loginScreen.style.display = 'block';
+                mainApp.style.display = 'none';
+            }
+        });
+
         function escucharPedidosEnNube() {
             db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
                 orders = [];
@@ -479,9 +568,6 @@
                     orders.push({ firebaseId: doc.id, ...doc.data() });
                 });
                 render();
-            }, (error) => {
-                console.error("Error al obtener datos: ", error);
-                alert("Error de conexión con la base de datos en la nube. Verificá tu configuración de Firebase.");
             });
         }
 
@@ -497,6 +583,7 @@
 
         orderForm.addEventListener('submit', function(e) {
               e.preventDefault();
+              if (currentUserRole !== 'admin') return; // Seguridad extra
 
               const idEditing = editIdInput.value;
               const cantidadValor = document.getElementById('cantidad').value.trim();
@@ -521,31 +608,33 @@
               };
 
               if (idEditing) {
-                    // Actualizar en Firestore
-                    db.collection("pedidos_hormigon").doc(idEditing).update(orderData)
-                        .then(() => {
-                            resetForm();
-                        })
-                        .catch((error) => console.error("Error al actualizar: ", error));
+                    db.collection("pedidos_hormigon").doc(idEditing).update(orderData).then(() => resetForm());
               } else {
-                    // Guardar nuevo en Firestore
                     orderData.id = Date.now();
-                    db.collection("pedidos_hormigon").add(orderData)
-                        .then(() => {
-                            document.getElementById('cliente').value = '';
-                            document.getElementById('tipoHormigon').value = '';
-                            document.getElementById('cantidad').value = '';
-                            document.getElementById('observaciones').value = '';
-                            aditivosContainer.innerHTML = '';
-                            document.getElementById('cliente').focus();
-                        })
-                        .catch((error) => console.error("Error al guardar: ", error));
+                    db.collection("pedidos_hormigon").add(orderData).then(() => {
+                        document.getElementById('cliente').value = '';
+                        document.getElementById('tipoHormigon').value = '';
+                        document.getElementById('cantidad').value = '';
+                        document.getElementById('observaciones').value = '';
+                        aditivosContainer.innerHTML = '';
+                        document.getElementById('cliente').focus();
+                    });
               }
         });
 
         function editOrder(firebaseId) {
               const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
               if (!orderToEdit) return;
+
+              // Si es plantista, solo le permitimos editar el volumen o las observaciones rápidas si lo desea,
+              // pero para mantener simple el ejemplo, el admin edita completo y el plantista ve la tabla.
+              if (currentUserRole === 'plantista') {
+                  let nuevoVolumen = prompt("Modificar Volumen / m³:", orderToEdit.cantidad);
+                  if (nuevoVolumen !== null) {
+                      db.collection("pedidos_hormigon").doc(firebaseId).update({ cantidad: nuevoVolumen.trim() });
+                  }
+                  return;
+              }
 
               editIdInput.value = orderToEdit.firebaseId;
               document.getElementById('fecha').value = orderToEdit.fecha;
@@ -579,16 +668,16 @@
         }
 
         function deleteOrder(firebaseId) {
-              if (confirm('¿Estás seguro de que deseas eliminar este pedido de la nube?')) {
-                    db.collection("pedidos_hormigon").doc(firebaseId).delete()
-                        .then(() => {
-                            if (editIdInput.value == firebaseId) resetForm();
-                        })
-                        .catch((error) => console.error("Error al eliminar: ", error));
+              if (currentUserRole !== 'admin') return;
+              if (confirm('¿Estás seguro de que deseas eliminar este pedido?')) {
+                    db.collection("pedidos_hormigon").doc(firebaseId).delete().then(() => {
+                        if (editIdInput.value == firebaseId) resetForm();
+                    });
               }
         }
 
         function actualizarListasClientes() {
+              if (currentUserRole !== 'admin') return;
               const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
               
               clientsDatalist.innerHTML = '';
@@ -667,6 +756,21 @@
                                 aditivosHtml = `<br><span style="color: #2980b9; font-size: 11px;">+ ${order.aditivos.join('<br>+ ')}</span>`;
                           }
 
+                          // Si es plantista, el botón de editar le permite cambiar el volumen rápido y el de borrar no aparece
+                          let accionesHtml = '';
+                          if (currentUserRole === 'admin') {
+                              accionesHtml = `
+                                  <div class="action-buttons">
+                                        <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
+                                        <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
+                                  </div>
+                              `;
+                          } else {
+                              accionesHtml = `
+                                  <button class="btn-edit" onclick="editOrder('${order.firebaseId}')" title="Ajustar volumen del camión">Editar Vol.</button>
+                              `;
+                          }
+
                           const row = document.createElement('tr');
                           row.innerHTML = `
                                 <td><strong>${order.hora}</strong></td>
@@ -675,12 +779,7 @@
                                 <td>${order.ubicacion}</td>
                                 <td><strong>${order.cantidad}</strong></td>
                                 <td style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</td>
-                                <td class="col-acciones">
-                                      <div class="action-buttons">
-                                            <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
-                                            <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
-                                      </div>
-                                </td>
+                                <td class="col-acciones">${accionesHtml}</td>
                           `;
                           ordersList.appendChild(row);
                     });
@@ -688,33 +787,32 @@
 
               dailyTotalEl.textContent = dailySum.toFixed(2);
 
-              const currentMonth = selectedDate.substring(0, 7);
-              let monthlySum = 0;
-              let monthlyCount = 0;
+              if (currentUserRole === 'admin') {
+                  const currentMonth = selectedDate.substring(0, 7);
+                  let monthlySum = 0;
+                  let monthlyCount = 0;
 
-              orders.forEach(order => {
-                    let numVal = parseFloat(order.cantidad);
-                    if (!isNaN(numVal) && order.fecha.startsWith(currentMonth)) {
-                          monthlySum += numVal;
-                    }
-                    if (order.fecha.startsWith(currentMonth)) {
-                          monthlyCount++;
-                    }
-              });
+                  orders.forEach(order => {
+                        let numVal = parseFloat(order.cantidad);
+                        if (!isNaN(numVal) && order.fecha.startsWith(currentMonth)) {
+                              monthlySum += numVal;
+                        }
+                        if (order.fecha.startsWith(currentMonth)) {
+                              monthlyCount++;
+                        }
+                  });
 
-              monthlyTotalEl.textContent = monthlySum.toFixed(2);
-              monthlyCountEl.textContent = monthlyCount;
+                  monthlyTotalEl.textContent = monthlySum.toFixed(2);
+                  monthlyCountEl.textContent = monthlyCount;
 
-              actualizarListasClientes();
-              if(selectClientHistory.value) {
-                    verHistorialCliente();
+                  actualizarListasClientes();
+                  if(selectClientHistory.value) {
+                        verHistorialCliente();
+                  }
               }
         }
 
         filterDateInput.addEventListener('change', render);
-        
-        // Arrancar la escucha de la nube
-        escucharPedidosEnNube();
     </script>
 </body>
 </html>
