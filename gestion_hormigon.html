@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GyE - División Hormigón | Gestión Online</title>
+    
+    <!-- Importar Firebase desde la nube (SDKs oficiales) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --gye-black: #111111;
+            --gye-yellow: #f1c40f;
+            --gye-red: #e74c3c;
+            --primary-color: #1a252f;
+            --secondary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --bg-color: #f4f6f7;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #dcdde1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: var(--gye-black);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 5px solid var(--gye-yellow);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            height: 50px;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 0.5px;
+        }
+
+        header h1 span {
+            color: var(--gye-yellow);
+        }
+
+        .header-date {
+            font-weight: 600;
+            font-size: 14px;
+            color: #bdc3c7;
+        }
+
+        .cloud-status {
+            font-size: 11px;
+            background: #27ae60;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .dashboard-stats {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 30px;
+            font-size: 16px;
+            border-left: 4px solid var(--gye-red);
+        }
+
+        .dashboard-stats span {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 60px;
+        }
+
+        .aditivos-container {
+            background: #f8f9fa;
+            border: 1px dashed var(--border-color);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .aditivo-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-add-item {
+            background-color: #27ae60;
+            padding: 6px 10px;
+            font-size: 12px;
+            width: auto;
+            margin-top: 5px;
+        }
+        .btn-add-item:hover { background-color: #219653; }
+
+        .btn-remove-item {
+            background-color: var(--gye-red);
+            color: white;
+            border: none;
+            padding: 0 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-remove-item:hover { background-color: #c0392b; }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: #1a252f; }
+
+        .btn-cancel {
+            background-color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .btn-cancel:hover { background-color: #616a6b; }
+
+        .filter-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        table th, table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        table th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            flex-direction: column;
+        }
+
+        .btn-edit {
+            background-color: #f39c12;
+            padding: 4px 8px;
+            font-size: 11px;
+            width: auto;
+        }
+        .btn-edit:hover { background-color: #d68910; }
+
+        .btn-delete {
+            background-color: var(--gye-red);
+            padding: 4px 8px;
+            font-size: 11px;
+            width: auto;
+        }
+        .btn-delete:hover { background-color: #c0392b; }
+
+        .btn-print {
+            background-color: #27ae60;
+            padding: 6px 12px;
+            font-size: 13px;
+            width: auto;
+        }
+        .btn-print:hover { background-color: #219653; }
+
+        .client-history-box {
+            background: #ebf5fb;
+            border: 1px solid #a9cce3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .client-history-box select {
+            margin-top: 5px;
+        }
+
+        .print-header {
+            display: none;
+        }
+
+        @media print {
+            body { background-color: white; padding: 0; }
+            header, .dashboard-stats, .grid-layout > .card:first-child, .filter-section, .no-print { display: none !important; }
+            
+            .print-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 3px solid #000;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+            .print-header img { height: 40px; }
+            .print-header h2 { margin: 0; font-size: 16px; }
+
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .grid-layout { display: block; }
+            .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+            table { font-size: 11px; width: 100%; }
+            table th, table td { border: 1px solid #333; padding: 6px; }
+            .col-acciones, .action-buttons { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+              <div class="header-brand">
+                  <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" class="header-logo" onerror="this.style.display='none'">
+                  <div>
+                      <h1>GyE <span>DIVISIÓN HORMIGÓN</span></h1>
+                      <div style="font-size: 12px; color: #ecf0f1; letter-spacing: 1px;">SISTEMA DE GESTIÓN ONLINE <span class="cloud-status">● En la Nube</span></div>
+                  </div>
+              </div>
+              <div class="header-date" id="current-date">Fecha: Hoy</div>
+        </header>
+
+        <div class="dashboard-stats">
+              <div>Total m³ del Mes: <span id="monthly-total">0.00</span> m³</div>
+              <div>Pedidos Registrados (Mes): <span id="monthly-count">0</span></div>
+        </div>
+
+        <div class="card no-print">
+              <h2>Historial de Cliente</h2>
+              <div class="client-history-box">
+                    <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
+                    <select id="select-client-history" onchange="verHistorialCliente()">
+                          <option value="">-- Seleccionar Cliente --</option>
+                    </select>
+                    <div id="client-history-results" style="margin-top: 10px; font-size: 13px;"></div>
+              </div>
+        </div>
+
+        <div class="grid-layout">
+              <div class="card">
+                    <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
+                    <form id="order-form">
+                          <input type="hidden" id="edit-id">
+                          <div class="form-group">
+                                <label for="fecha">Fecha</label>
+                                <input type="date" id="fecha" required>
+                          </div>
+                          <div class="form-group">
+                                <label for="hora">Hora del Turno</label>
+                                <input type="time" id="hora" required>
+                          </div>
+                          <div class="form-group">
+                                <label for="cliente">Cliente</label>
+                                <input type="text" id="cliente" placeholder="Ej: Juan Pérez" list="clients-datalist" required>
+                                <datalist id="clients-datalist"></datalist>
+                          </div>
+                          <div class="form-group">
+                                <label for="tipoHormigon">Tipo de H° (Principal)</label>
+                                <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B) o H13 1/3" required>
+                          </div>
+
+                          <div class="form-group">
+                                <label>Ítems Adicionales / Aditivos (Opcional)</label>
+                                <div class="aditivos-container" id="aditivos-container"></div>
+                                <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Aditivo / Ítem</button>
+                          </div>
+
+                          <div class="form-group">
+                                <label for="ubicacion">Ubicación / Obra</label>
+                                <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
+                          </div>
+                          <div class="form-group">
+                                <label for="cantidad">Volumen / m³ (Ej: 8 o "1 camión")</label>
+                                <input type="text" id="cantidad" placeholder="Ej: 7.5 o 1 camión" required>
+                          </div>
+                          <div class="form-group">
+                                <label for="observaciones">Información Adicional / Observaciones</label>
+                                <textarea id="observaciones" placeholder="Ej: Solicitó Pedro. Descarga lenta, etc."></textarea>
+                          </div>
+                          <button type="submit" id="btn-submit">Guardar Pedido</button>
+                          <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
+                    </form>
+              </div>
+
+              <div class="card">
+                    <h2>
+                        <span>Parte Diario de Despacho</span>
+                        <button class="btn-print" onclick="window.print()">🖨️ Imprimir Listado</button>
+                    </h2>
+                    
+                    <div class="print-header">
+                          <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" onerror="this.style.display='none'">
+                          <h2>PARTE DIARIO DE DESPACHO - <span id="print-date-title"></span></h2>
+                    </div>
+
+                    <div class="filter-section">
+                          <div class="form-group" style="flex: 1; margin: 0;">
+                                <label for="filter-date">Filtrar por Día:</label>
+                                <input type="date" id="filter-date">
+                          </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                          <table id="orders-table">
+                                <thead>
+                                      <tr>
+                                            <th>Hora</th>
+                                            <th>Cliente</th>
+                                            <th>H° e Ítems Extra</th>
+                                            <th>Ubicación</th>
+                                            <th>Volumen</th>
+                                            <th>Observaciones</th>
+                                            <th class="col-acciones">Acciones</th>
+                                      </tr>
+                                </thead>
+                                <tbody id="orders-list">
+                                      <tr><td colspan="7" style="text-align: center; color: #7f8c8d;">Cargando datos desde la nube...</td></tr>
+                                </tbody>
+                          </table>
+                    </div>
+                    <div style="margin-top: 15px; text-align: right; font-size: 16px; font-weight: bold;">
+                          Total del Día Seleccionado: <span id="daily-total">0.00</span> m³
+                    </div>
+              </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN DE FIREBASE (¡PEGAR TUS DATOS ACÁ!)
+        // ==========================================
+        const firebaseConfig = {
+    apiKey: "AIzaSyCqhSttXPpa51TV1wOiOyYy-NYqM7EV8w0",
+    authDomain: "gyehormigon.firebaseapp.com",
+    projectId: "gyehormigon",
+    storageBucket: "gyehormigon.firebasestorage.app",
+    messagingSenderId: "1002093938030",
+    appId: "1:1002093938030:web:5b7a1e1ec4818895f2ad7f",
+    measurementId: "G-HGF98N5H95"
+  };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let orders = [];
+
+        const orderForm = document.getElementById('order-form');
+        const ordersList = document.getElementById('orders-list');
+        const filterDateInput = document.getElementById('filter-date');
+        const monthlyTotalEl = document.getElementById('monthly-total');
+        const monthlyCountEl = document.getElementById('monthly-count');
+        const dailyTotalEl = document.getElementById('daily-total');
+        const aditivosContainer = document.getElementById('aditivos-container');
+        const selectClientHistory = document.getElementById('select-client-history');
+        const clientHistoryResults = document.getElementById('client-history-results');
+        const clientsDatalist = document.getElementById('clients-datalist');
+        const printDateTitle = document.getElementById('print-date-title');
+        
+        const formTitle = document.getElementById('form-title');
+        const btnSubmit = document.getElementById('btn-submit');
+        const btnCancel = document.getElementById('btn-cancel');
+        const editIdInput = document.getElementById('edit-id');
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha').value = todayStr;
+        filterDateInput.value = todayStr;
+
+        // Escuchar cambios en tiempo real desde Firestore (Nube)
+        function escucharPedidosEnNube() {
+            db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
+                orders = [];
+                snapshot.forEach((doc) => {
+                    orders.push({ firebaseId: doc.id, ...doc.data() });
+                });
+                render();
+            }, (error) => {
+                console.error("Error al obtener datos: ", error);
+                alert("Error de conexión con la base de datos en la nube. Verificá tu configuración de Firebase.");
+            });
+        }
+
+        function agregarFilaAditivo(texto = '') {
+              const div = document.createElement('div');
+              div.className = 'aditivo-row';
+              div.innerHTML = `
+                    <input type="text" class="aditivo-input" placeholder="Ej: Macrofibra 2kg/m3" value="${texto}">
+                    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">X</button>
+              `;
+              aditivosContainer.appendChild(div);
+        }
+
+        orderForm.addEventListener('submit', function(e) {
+              e.preventDefault();
+
+              const idEditing = editIdInput.value;
+              const cantidadValor = document.getElementById('cantidad').value.trim();
+
+              const aditivosInputs = document.querySelectorAll('.aditivo-input');
+              let aditivosList = [];
+              aditivosInputs.forEach(input => {
+                    if (input.value.trim() !== '') {
+                          aditivosList.push(input.value.trim());
+                    }
+              });
+
+              const orderData = {
+                    fecha: document.getElementById('fecha').value,
+                    hora: document.getElementById('hora').value,
+                    cliente: document.getElementById('cliente').value.trim(),
+                    tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
+                    aditivos: aditivosList,
+                    ubicacion: document.getElementById('ubicacion').value.trim(),
+                    cantidad: cantidadValor,
+                    observaciones: document.getElementById('observaciones').value.trim()
+              };
+
+              if (idEditing) {
+                    // Actualizar en Firestore
+                    db.collection("pedidos_hormigon").doc(idEditing).update(orderData)
+                        .then(() => {
+                            resetForm();
+                        })
+                        .catch((error) => console.error("Error al actualizar: ", error));
+              } else {
+                    // Guardar nuevo en Firestore
+                    orderData.id = Date.now();
+                    db.collection("pedidos_hormigon").add(orderData)
+                        .then(() => {
+                            document.getElementById('cliente').value = '';
+                            document.getElementById('tipoHormigon').value = '';
+                            document.getElementById('cantidad').value = '';
+                            document.getElementById('observaciones').value = '';
+                            aditivosContainer.innerHTML = '';
+                            document.getElementById('cliente').focus();
+                        })
+                        .catch((error) => console.error("Error al guardar: ", error));
+              }
+        });
+
+        function editOrder(firebaseId) {
+              const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
+              if (!orderToEdit) return;
+
+              editIdInput.value = orderToEdit.firebaseId;
+              document.getElementById('fecha').value = orderToEdit.fecha;
+              document.getElementById('hora').value = orderToEdit.hora;
+              document.getElementById('cliente').value = orderToEdit.cliente;
+              document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
+              document.getElementById('ubicacion').value = orderToEdit.ubicacion;
+              document.getElementById('cantidad').value = orderToEdit.cantidad;
+              document.getElementById('observaciones').value = orderToEdit.observaciones;
+
+              aditivosContainer.innerHTML = '';
+              if (orderToEdit.aditivos && orderToEdit.aditivos.length > 0) {
+                    orderToEdit.aditivos.forEach(item => agregarFilaAditivo(item));
+              }
+
+              formTitle.textContent = "Editar Turno / Pedido";
+              btnSubmit.textContent = "Actualizar Pedido";
+              btnCancel.style.display = "block";
+              
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+              editIdInput.value = '';
+              orderForm.reset();
+              document.getElementById('fecha').value = filterDateInput.value;
+              aditivosContainer.innerHTML = '';
+              formTitle.textContent = "Cargar Nuevo Turno / Pedido";
+              btnSubmit.textContent = "Guardar Pedido";
+              btnCancel.style.display = "none";
+        }
+
+        function deleteOrder(firebaseId) {
+              if (confirm('¿Estás seguro de que deseas eliminar este pedido de la nube?')) {
+                    db.collection("pedidos_hormigon").doc(firebaseId).delete()
+                        .then(() => {
+                            if (editIdInput.value == firebaseId) resetForm();
+                        })
+                        .catch((error) => console.error("Error al eliminar: ", error));
+              }
+        }
+
+        function actualizarListasClientes() {
+              const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
+              
+              clientsDatalist.innerHTML = '';
+              clientesSet.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    clientsDatalist.appendChild(opt);
+              });
+
+              const clienteSeleccionadoActual = selectClientHistory.value;
+              selectClientHistory.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
+              clientesSet.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    if (c === clienteSeleccionadoActual) opt.selected = true;
+                    selectClientHistory.appendChild(opt);
+              });
+        }
+
+        function verHistorialCliente() {
+              const clienteBuscado = selectClientHistory.value;
+              if (!clienteBuscado) {
+                    clientHistoryResults.innerHTML = '';
+                    return;
+              }
+
+              const pedidosCliente = orders
+                    .filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase())
+                    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+              if (pedidosCliente.length === 0) {
+                    clientHistoryResults.innerHTML = `<em>No hay registros para este cliente.</em>`;
+                    return;
+              }
+
+              let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
+              html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Aditivos</th><th>Volumen</th></tr></thead><tbody>`;
+              
+              pedidosCliente.forEach(p => {
+                    let aditivosTexto = p.aditivos && p.aditivos.length > 0 ? `<br><span style="color:#2980b9; font-size:11px;">+ ${p.aditivos.join(', ')}</span>` : '';
+                    html += `<tr>
+                          <td>${p.fecha}</td>
+                          <td>${p.hora}</td>
+                          <td>${p.ubicacion}</td>
+                          <td><strong>${p.tipoHormigon}</strong>${aditivosTexto}</td>
+                          <td><strong>${p.cantidad}</strong></td>
+                    </tr>`;
+              });
+              html += `</tbody></table></div>`;
+              clientHistoryResults.innerHTML = html;
+        }
+
+        function render() {
+              const selectedDate = filterDateInput.value;
+              printDateTitle.textContent = selectedDate;
+              ordersList.innerHTML = '';
+
+              const filteredOrders = orders
+                    .filter(order => order.fecha === selectedDate)
+                    .sort((a, b) => a.hora.localeCompare(b.hora));
+
+              let dailySum = 0;
+
+              if (filteredOrders.length === 0) {
+                    ordersList.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #7f8c8d;">No hay pedidos cargados para esta fecha.</td></tr>`;
+              } else {
+                    filteredOrders.forEach(order => {
+                          let numVal = parseFloat(order.cantidad);
+                          if (!isNaN(numVal)) {
+                                dailySum += numVal;
+                          }
+
+                          let aditivosHtml = '';
+                          if (order.aditivos && order.aditivos.length > 0) {
+                                aditivosHtml = `<br><span style="color: #2980b9; font-size: 11px;">+ ${order.aditivos.join('<br>+ ')}</span>`;
+                          }
+
+                          const row = document.createElement('tr');
+                          row.innerHTML = `
+                                <td><strong>${order.hora}</strong></td>
+                                <td>${order.cliente}</td>
+                                <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
+                                <td>${order.ubicacion}</td>
+                                <td><strong>${order.cantidad}</strong></td>
+                                <td style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</td>
+                                <td class="col-acciones">
+                                      <div class="action-buttons">
+                                            <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
+                                            <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
+                                      </div>
+                                </td>
+                          `;
+                          ordersList.appendChild(row);
+                    });
+              }
+
+              dailyTotalEl.textContent = dailySum.toFixed(2);
+
+              const currentMonth = selectedDate.substring(0, 7);
+              let monthlySum = 0;
+              let monthlyCount = 0;
+
+              orders.forEach(order => {
+                    let numVal = parseFloat(order.cantidad);
+                    if (!isNaN(numVal) && order.fecha.startsWith(currentMonth)) {
+                          monthlySum += numVal;
+                    }
+                    if (order.fecha.startsWith(currentMonth)) {
+                          monthlyCount++;
+                    }
+              });
+
+              monthlyTotalEl.textContent = monthlySum.toFixed(2);
+              monthlyCountEl.textContent = monthlyCount;
+
+              actualizarListasClientes();
+              if(selectClientHistory.value) {
+                    verHistorialCliente();
+              }
+        }
+
+        filterDateInput.addEventListener('change', render);
+        
+        // Arrancar la escucha de la nube
+        escucharPedidosEnNube();
+    </script>
+</body>
+</html>
