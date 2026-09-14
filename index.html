@@ -153,7 +153,6 @@
             gap: 20px;
         }
 
-        /* Si es operador, ocultamos el formulario y expandimos la tabla */
         .operator-mode .grid-layout {
             grid-template-columns: 1fr;
         }
@@ -210,6 +209,20 @@
             resize: vertical;
             height: 60px;
         }
+
+        .client-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-new-client {
+            background-color: var(--secondary-color);
+            padding: 0 12px;
+            font-size: 13px;
+            width: auto;
+            white-space: nowrap;
+        }
+        .btn-new-client:hover { background-color: #1a252f; }
 
         .aditivos-container {
             background: #f8f9fa;
@@ -362,20 +375,17 @@
         <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Seleccioná con qué perfil deseas ingresar</p>
         
         <div class="login-options">
-            <!-- Opción Plantista -->
             <div class="role-card" onclick="ingresarComoPlantista()">
                 <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">🏭 Operador / Plantista</h3>
                 <p style="margin: 0; font-size: 12px; color: #666;">Acceso rápido al parte diario y ajuste de volúmenes.</p>
             </div>
 
-            <!-- Opción Administrador -->
             <div class="role-card" onclick="mostrarAuthAdmin()">
                 <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">👑 Administrador</h3>
                 <p style="margin: 0; font-size: 12px; color: #666;">Acceso total a gestión, carga, historial y métricas.</p>
             </div>
         </div>
 
-        <!-- Cuadro de contraseña para Admin -->
         <div id="admin-auth-box" class="admin-auth-box">
             <label for="admin-pass" style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px;">Ingresá la contraseña de Admin:</label>
             <input type="password" id="admin-pass" placeholder="Contraseña..." style="margin-bottom: 8px;">
@@ -384,7 +394,7 @@
         </div>
     </div>
 
-    <!-- PANTALLA PRINCIPAL DEL SISTEMA (Oculta hasta iniciar sesión) -->
+    <!-- PANTALLA PRINCIPAL DEL SISTEMA -->
     <div class="container" id="main-app" style="display: none;">
         <header>
               <div class="header-brand">
@@ -434,8 +444,16 @@
                           </div>
                           <div class="form-group">
                                 <label for="cliente">Cliente</label>
-                                <input type="text" id="cliente" placeholder="Ej: Juan Pérez" list="clients-datalist" required>
-                                <datalist id="clients-datalist"></datalist>
+                                <div class="client-input-row" id="client-container-select">
+                                    <select id="cliente-select" style="flex:1;">
+                                        <option value="">-- Seleccionar Cliente --</option>
+                                    </select>
+                                    <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
+                                </div>
+                                <div class="client-input-row" id="client-container-input" style="display: none;">
+                                    <input type="text" id="cliente-input" placeholder="Nombre del nuevo cliente..." style="flex:1;">
+                                    <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
+                                </div>
                           </div>
                           <div class="form-group">
                                 <label for="tipoHormigon">Tipo de H° (Principal)</label>
@@ -525,11 +543,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 🔐 CONFIGURÁ TU CONTRASEÑA DE ADMINISTRADOR ACÁ:
+        // 🔐 TU CONTRASEÑA DE ADMINISTRADOR:
         const PASSWORD_ADMIN = "admin123"; 
 
         let orders = [];
-        let currentUserRole = 'admin'; // 'admin' o 'plantista'
+        let currentUserRole = 'admin'; 
 
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
@@ -548,7 +566,12 @@
         const aditivosContainer = document.getElementById('aditivos-container');
         const selectClientHistory = document.getElementById('select-client-history');
         const clientHistoryResults = document.getElementById('client-history-results');
-        const clientsDatalist = document.getElementById('clients-datalist');
+        
+        const clienteSelect = document.getElementById('cliente-select');
+        const clienteInput = document.getElementById('cliente-input');
+        const clientContainerSelect = document.getElementById('client-container-select');
+        const clientContainerInput = document.getElementById('client-container-input');
+
         const printDateTitle = document.getElementById('print-date-title');
         
         const formTitle = document.getElementById('form-title');
@@ -600,6 +623,19 @@
             loginError.textContent = '';
         }
 
+        function habilitarNuevoCliente() {
+            clientContainerSelect.style.display = 'none';
+            clientContainerInput.style.display = 'flex';
+            clienteInput.value = '';
+            clienteInput.focus();
+        }
+
+        function cancelarNuevoCliente() {
+            clientContainerInput.style.display = 'none';
+            clientContainerSelect.style.display = 'flex';
+            clienteInput.value = '';
+        }
+
         function escucharPedidosEnNube() {
             db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
                 orders = [];
@@ -625,6 +661,20 @@
               if (currentUserRole !== 'admin') return;
 
               const idEditing = editIdInput.value;
+              
+              // Determinar nombre del cliente según el modo activo (desplegable o nuevo input)
+              let clienteFinal = "";
+              if (clientContainerInput.style.display === 'flex') {
+                  clienteFinal = clienteInput.value.trim();
+              } else {
+                  clienteFinal = clienteSelect.value;
+              }
+
+              if (!clienteFinal) {
+                  alert("Por favor, seleccioná o ingresá un cliente.");
+                  return;
+              }
+
               const cantidadValor = document.getElementById('cantidad').value.trim();
 
               const aditivosInputs = document.querySelectorAll('.aditivo-input');
@@ -638,7 +688,7 @@
               const orderData = {
                     fecha: document.getElementById('fecha').value,
                     hora: document.getElementById('hora').value,
-                    cliente: document.getElementById('cliente').value.trim(),
+                    cliente: clienteFinal,
                     tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
                     aditivos: aditivosList,
                     ubicacion: document.getElementById('ubicacion').value.trim(),
@@ -651,12 +701,12 @@
               } else {
                     orderData.id = Date.now();
                     db.collection("pedidos_hormigon").add(orderData).then(() => {
-                        document.getElementById('cliente').value = '';
+                        cancelarNuevoCliente();
                         document.getElementById('tipoHormigon').value = '';
                         document.getElementById('cantidad').value = '';
                         document.getElementById('observaciones').value = '';
                         aditivosContainer.innerHTML = '';
-                        document.getElementById('cliente').focus();
+                        clienteSelect.focus();
                     });
               }
         });
@@ -676,7 +726,11 @@
               editIdInput.value = orderToEdit.firebaseId;
               document.getElementById('fecha').value = orderToEdit.fecha;
               document.getElementById('hora').value = orderToEdit.hora;
-              document.getElementById('cliente').value = orderToEdit.cliente;
+              
+              // Seleccionar cliente en el desplegable
+              cancelarNuevoCliente();
+              clienteSelect.value = orderToEdit.cliente;
+
               document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
               document.getElementById('ubicacion').value = orderToEdit.ubicacion;
               document.getElementById('cantidad').value = orderToEdit.cantidad;
@@ -698,6 +752,7 @@
               editIdInput.value = '';
               orderForm.reset();
               document.getElementById('fecha').value = filterDateInput.value;
+              cancelarNuevoCliente();
               aditivosContainer.innerHTML = '';
               formTitle.textContent = "Cargar Nuevo Turno / Pedido";
               btnSubmit.textContent = "Guardar Pedido";
@@ -717,20 +772,25 @@
               if (currentUserRole !== 'admin') return;
               const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
               
-              clientsDatalist.innerHTML = '';
+              // Actualizar Selector del Formulario
+              const clienteSeleccionadoForm = clienteSelect.value;
+              clienteSelect.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
               clientesSet.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c;
-                    clientsDatalist.appendChild(opt);
+                    opt.textContent = c;
+                    if (c === clienteSeleccionadoForm) opt.selected = true;
+                    clienteSelect.appendChild(opt);
               });
 
-              const clienteSeleccionadoActual = selectClientHistory.value;
+              // Actualizar Selector del Historial
+              const clienteSeleccionadoHistorial = selectClientHistory.value;
               selectClientHistory.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
               clientesSet.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c;
                     opt.textContent = c;
-                    if (c === clienteSeleccionadoActual) opt.selected = true;
+                    if (c === clienteSeleccionadoHistorial) opt.selected = true;
                     selectClientHistory.appendChild(opt);
               });
         }
