@@ -8,7 +8,6 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
         :root {
@@ -88,16 +87,47 @@
         }
         .btn-logout:hover { background-color: #c0392b; }
 
-        /* Pantalla de Login */
+        /* Pantalla de Selección de Perfil / Login */
         #login-screen {
-            max-width: 400px;
-            margin: 80px auto;
+            max-width: 420px;
+            margin: 60px auto;
             background: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             border-top: 5px solid var(--gye-yellow);
             text-align: center;
+        }
+
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .role-card {
+            border: 2px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+
+        .role-card:hover {
+            border-color: var(--secondary-color);
+            background: #f0f3f4;
+        }
+
+        .admin-auth-box {
+            display: none;
+            margin-top: 15px;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
 
         .dashboard-stats {
@@ -326,20 +356,32 @@
 </head>
 <body id="app-body">
 
-    <!-- PANTALLA DE INICIO DE SESIÓN -->
+    <!-- PANTALLA DE SELECCIÓN DE PERFIL / LOGIN -->
     <div id="login-screen">
         <h2 style="color: var(--primary-color); margin-top: 0;">GyE - DIVISIÓN HORMIGÓN</h2>
-        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Iniciá sesión para ingresar al sistema</p>
-        <form id="login-form">
-            <div class="form-group">
-                <input type="email" id="login-email" placeholder="Correo electrónico" required>
+        <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Seleccioná con qué perfil deseas ingresar</p>
+        
+        <div class="login-options">
+            <!-- Opción Plantista -->
+            <div class="role-card" onclick="ingresarComoPlantista()">
+                <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">🏭 Operador / Plantista</h3>
+                <p style="margin: 0; font-size: 12px; color: #666;">Acceso rápido al parte diario y ajuste de volúmenes.</p>
             </div>
-            <div class="form-group">
-                <input type="password" id="login-password" placeholder="Contraseña" required>
+
+            <!-- Opción Administrador -->
+            <div class="role-card" onclick="mostrarAuthAdmin()">
+                <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">👑 Administrador</h3>
+                <p style="margin: 0; font-size: 12px; color: #666;">Acceso total a gestión, carga, historial y métricas.</p>
             </div>
-            <button type="submit">Ingresar al Sistema</button>
-            <div id="login-error" style="color: var(--gye-red); font-size: 12px; margin-top: 10px;"></div>
-        </form>
+        </div>
+
+        <!-- Cuadro de contraseña para Admin -->
+        <div id="admin-auth-box" class="admin-auth-box">
+            <label for="admin-pass" style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px;">Ingresá la contraseña de Admin:</label>
+            <input type="password" id="admin-pass" placeholder="Contraseña..." style="margin-bottom: 8px;">
+            <button type="button" onclick="verificarAdmin()" style="padding: 8px; font-size: 14px;">Confirmar Acceso</button>
+            <div id="login-error" style="color: var(--gye-red); font-size: 12px; margin-top: 5px;"></div>
+        </div>
     </div>
 
     <!-- PANTALLA PRINCIPAL DEL SISTEMA (Oculta hasta iniciar sesión) -->
@@ -354,7 +396,7 @@
               </div>
               <div class="user-info">
                   <span id="user-display-role">Perfil: --</span>
-                  <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+                  <button class="btn-logout" onclick="cerrarSesion()">Cambiar Perfil</button>
               </div>
         </header>
 
@@ -423,7 +465,7 @@
                     </form>
               </div>
 
-              <!-- Vista de Despacho y Parte Diario (Visible para ambos con permisos ajustados) -->
+              <!-- Vista de Despacho y Parte Diario -->
               <div class="card">
                     <h2>
                         <span>Parte Diario de Despacho</span>
@@ -482,7 +524,9 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
+
+        // 🔐 CONFIGURÁ TU CONTRASEÑA DE ADMINISTRADOR ACÁ:
+        const PASSWORD_ADMIN = "admin123"; 
 
         let orders = [];
         let currentUserRole = 'admin'; // 'admin' o 'plantista'
@@ -490,7 +534,8 @@
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
         const appBody = document.getElementById('app-body');
-        const loginForm = document.getElementById('login-form');
+        const adminAuthBox = document.getElementById('admin-auth-box');
+        const adminPassInput = document.getElementById('admin-pass');
         const loginError = document.getElementById('login-error');
         const userDisplayRole = document.getElementById('user-display-role');
 
@@ -515,51 +560,45 @@
         document.getElementById('fecha').value = todayStr;
         filterDateInput.value = todayStr;
 
-        // Control de Sesión con Firebase Auth
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Login exitoso
-                    loginError.textContent = '';
-                })
-                .catch((error) => {
-                    loginError.textContent = "Error: Usuario o contraseña incorrectos.";
-                });
-        });
-
-        function cerrarSesion() {
-            auth.signOut();
+        function ingresarComoPlantista() {
+            currentUserRole = 'plantista';
+            userDisplayRole.textContent = "Perfil: Plantista / Operador";
+            appBody.classList.add('operator-mode');
+            loginScreen.style.display = 'none';
+            mainApp.style.display = 'block';
+            escucharPedidosEnNube();
         }
 
-        // Escuchar estado de autenticación
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // Usuario logueado. Determinamos rol según el correo
+        function mostrarAuthAdmin() {
+            adminAuthBox.style.display = 'block';
+            adminPassInput.focus();
+        }
+
+        function verificarAdmin() {
+            const pass = adminPassInput.value;
+            if (pass === PASSWORD_ADMIN) {
+                currentUserRole = 'admin';
+                userDisplayRole.textContent = "Perfil: Administración";
+                appBody.classList.remove('operator-mode');
                 loginScreen.style.display = 'none';
                 mainApp.style.display = 'block';
-
-                // Ejemplo: si el mail contiene "plantista" o "planta", se le asigna rol de operador
-                if (user.email.toLowerCase().includes('plantista') || user.email.toLowerCase().includes('planta')) {
-                    currentUserRole = 'plantista';
-                    userDisplayRole.textContent = "Perfil: Plantista / Operador";
-                    appBody.classList.add('operator-mode');
-                } else {
-                    currentUserRole = 'admin';
-                    userDisplayRole.textContent = "Perfil: Administración";
-                    appBody.classList.remove('operator-mode');
-                }
-
+                adminPassInput.value = '';
+                adminAuthBox.style.display = 'none';
+                loginError.textContent = '';
                 escucharPedidosEnNube();
             } else {
-                // Usuario deslogueado
-                loginScreen.style.display = 'block';
-                mainApp.style.display = 'none';
+                loginError.textContent = "Contraseña incorrecta.";
+                adminPassInput.focus();
             }
-        });
+        }
+
+        function cerrarSesion() {
+            loginScreen.style.display = 'block';
+            mainApp.style.display = 'none';
+            adminAuthBox.style.display = 'none';
+            adminPassInput.value = '';
+            loginError.textContent = '';
+        }
 
         function escucharPedidosEnNube() {
             db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
@@ -583,7 +622,7 @@
 
         orderForm.addEventListener('submit', function(e) {
               e.preventDefault();
-              if (currentUserRole !== 'admin') return; // Seguridad extra
+              if (currentUserRole !== 'admin') return;
 
               const idEditing = editIdInput.value;
               const cantidadValor = document.getElementById('cantidad').value.trim();
@@ -626,11 +665,9 @@
               const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
               if (!orderToEdit) return;
 
-              // Si es plantista, solo le permitimos editar el volumen o las observaciones rápidas si lo desea,
-              // pero para mantener simple el ejemplo, el admin edita completo y el plantista ve la tabla.
               if (currentUserRole === 'plantista') {
-                  let nuevoVolumen = prompt("Modificar Volumen / m³:", orderToEdit.cantidad);
-                  if (nuevoVolumen !== null) {
+                  let nuevoVolumen = prompt("Modificar Volumen / m³ del camión:", orderToEdit.cantidad);
+                  if (nuevoVolumen !== null && nuevoVolumen.trim() !== "") {
                       db.collection("pedidos_hormigon").doc(firebaseId).update({ cantidad: nuevoVolumen.trim() });
                   }
                   return;
@@ -756,7 +793,6 @@
                                 aditivosHtml = `<br><span style="color: #2980b9; font-size: 11px;">+ ${order.aditivos.join('<br>+ ')}</span>`;
                           }
 
-                          // Si es plantista, el botón de editar le permite cambiar el volumen rápido y el de borrar no aparece
                           let accionesHtml = '';
                           if (currentUserRole === 'admin') {
                               accionesHtml = `
