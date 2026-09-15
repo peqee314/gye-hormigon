@@ -224,6 +224,30 @@
         }
         .btn-new-client:hover { background-color: #1a252f; }
 
+        /* Estilo para el checkbox de facturación */
+        .factura-checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        .factura-checkbox-container input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .factura-checkbox-container label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
         .aditivos-container {
             background: #f8f9fa;
             border: 1px dashed var(--border-color);
@@ -454,6 +478,12 @@
                                     <input type="text" id="cliente-input" placeholder="Nombre del nuevo cliente..." style="flex:1;">
                                     <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
                                 </div>
+                                
+                                <!-- Casillero de Facturación -->
+                                <div class="factura-checkbox-container">
+                                    <input type="checkbox" id="es-facturado">
+                                    <label for="es-facturado">Pedido con Factura</label>
+                                </div>
                           </div>
                           <div class="form-group">
                                 <label for="tipoHormigon">Tipo de H° (Principal)</label>
@@ -572,6 +602,7 @@
         const clienteInput = document.getElementById('cliente-input');
         const clientContainerSelect = document.getElementById('client-container-select');
         const clientContainerInput = document.getElementById('client-container-input');
+        const esFacturadoCheckbox = document.getElementById('es-facturado');
 
         const printDateTitle = document.getElementById('print-date-title');
         
@@ -663,7 +694,6 @@
 
               const idEditing = editIdInput.value;
               
-              // Determinar nombre del cliente según el modo activo (desplegable o nuevo input)
               let clienteFinal = "";
               if (clientContainerInput.style.display === 'flex') {
                   clienteFinal = clienteInput.value.trim();
@@ -677,6 +707,7 @@
               }
 
               const cantidadValor = document.getElementById('cantidad').value.trim();
+              const facturadoValor = esFacturadoCheckbox.checked;
 
               const aditivosInputs = document.querySelectorAll('.aditivo-input');
               let aditivosList = [];
@@ -690,6 +721,7 @@
                     fecha: document.getElementById('fecha').value,
                     hora: document.getElementById('hora').value,
                     cliente: clienteFinal,
+                    facturado: facturadoValor,
                     tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
                     aditivos: aditivosList,
                     ubicacion: document.getElementById('ubicacion').value.trim(),
@@ -703,6 +735,7 @@
                     orderData.id = Date.now();
                     db.collection("pedidos_hormigon").add(orderData).then(() => {
                         cancelarNuevoCliente();
+                        esFacturadoCheckbox.checked = false;
                         document.getElementById('tipoHormigon').value = '';
                         document.getElementById('cantidad').value = '';
                         document.getElementById('observaciones').value = '';
@@ -728,9 +761,9 @@
               document.getElementById('fecha').value = orderToEdit.fecha;
               document.getElementById('hora').value = orderToEdit.hora;
               
-              // Seleccionar cliente en el desplegable
               cancelarNuevoCliente();
               clienteSelect.value = orderToEdit.cliente;
+              esFacturadoCheckbox.checked = !!orderToEdit.facturado;
 
               document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
               document.getElementById('ubicacion').value = orderToEdit.ubicacion;
@@ -754,6 +787,7 @@
               orderForm.reset();
               document.getElementById('fecha').value = filterDateInput.value;
               cancelarNuevoCliente();
+              esFacturadoCheckbox.checked = false;
               aditivosContainer.innerHTML = '';
               formTitle.textContent = "Cargar Nuevo Turno / Pedido";
               btnSubmit.textContent = "Guardar Pedido";
@@ -773,7 +807,6 @@
               if (currentUserRole !== 'admin') return;
               const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
               
-              // Actualizar Selector del Formulario
               const clienteSeleccionadoForm = clienteSelect.value;
               clienteSelect.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
               clientesSet.forEach(c => {
@@ -784,7 +817,6 @@
                     clienteSelect.appendChild(opt);
               });
 
-              // Actualizar Selector del Historial
               const clienteSeleccionadoHistorial = selectClientHistory.value;
               selectClientHistory.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
               clientesSet.forEach(c => {
@@ -813,14 +845,16 @@
               }
 
               let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-              html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Aditivos</th><th>Volumen</th></tr></thead><tbody>`;
+              html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>Factura</th><th>H° / Aditivos</th><th>Volumen</th></tr></thead><tbody>`;
               
               pedidosCliente.forEach(p => {
+                    let facturaBadge = p.facturado ? `<span style="color:#27ae60; font-weight:bold;">Sí</span>` : `<span style="color:#7f8c8d;">No</span>`;
                     let aditivosTexto = p.aditivos && p.aditivos.length > 0 ? `<br><span style="color:#2980b9; font-size:11px;">+ ${p.aditivos.join(', ')}</span>` : '';
                     html += `<tr>
                           <td>${p.fecha}</td>
                           <td>${p.hora}</td>
                           <td>${p.ubicacion}</td>
+                          <td>${facturaBadge}</td>
                           <td><strong>${p.tipoHormigon}</strong>${aditivosTexto}</td>
                           <td><strong>${p.cantidad}</strong></td>
                     </tr>`;
@@ -849,6 +883,10 @@
                                 dailySum += numVal;
                           }
 
+                          let facturaBadge = order.facturado 
+                              ? `<span style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 3px;">FACTURADO</span>` 
+                              : `<span style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 3px;">SIN FACTURA</span>`;
+
                           let aditivosHtml = '';
                           if (order.aditivos && order.aditivos.length > 0) {
                                 aditivosHtml = `<br><span style="color: #2980b9; font-size: 11px;">+ ${order.aditivos.join('<br>+ ')}</span>`;
@@ -871,7 +909,7 @@
                           const row = document.createElement('tr');
                           row.innerHTML = `
                                 <td><strong>${order.hora}</strong></td>
-                                <td>${order.cliente}</td>
+                                <td>${order.cliente}<br>${facturaBadge}</td>
                                 <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
                                 <td>${order.ubicacion}</td>
                                 <td><strong>${order.cantidad}</strong></td>
