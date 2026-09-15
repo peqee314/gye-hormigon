@@ -224,7 +224,6 @@
         }
         .btn-new-client:hover { background-color: #1a252f; }
 
-        /* Estilo para el checkbox de facturación */
         .factura-checkbox-container {
             display: flex;
             align-items: center;
@@ -247,6 +246,53 @@
             font-weight: 600;
             font-size: 13px;
         }
+
+        /* Contenedor para armar la secuencia ordenada de camiones */
+        .secuencia-camiones-box {
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .secuencia-add-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .secuencia-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .secuencia-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border: 1px solid #bdc3c7;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .btn-add-secuencia {
+            background-color: var(--secondary-color);
+            padding: 8px 12px;
+            font-size: 13px;
+            width: auto;
+        }
+        .btn-add-secuencia:hover { background-color: #1a252f; }
+
+        .btn-remove-secuencia {
+            background-color: var(--gye-red);
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .btn-remove-secuencia:hover { background-color: #c0392b; }
 
         .aditivos-container {
             background: #f8f9fa;
@@ -479,12 +525,43 @@
                                     <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
                                 </div>
                                 
-                                <!-- Casillero de Facturación -->
                                 <div class="factura-checkbox-container">
                                     <input type="checkbox" id="es-facturado">
                                     <label for="es-facturado">Pedido con Factura</label>
                                 </div>
                           </div>
+
+                          <!-- Secuencia Ordenada de Unidades Asignadas -->
+                          <div class="form-group">
+                                <label>Secuencia de Salida de Camiones (Orden de Carga)</label>
+                                <div class="secuencia-camiones-box">
+                                    <div class="secuencia-add-row">
+                                        <select id="select-nuevo-camion" style="flex:1;">
+                                            <option value="">-- Seleccionar Unidad --</option>
+                                            <optgroup label="Mixers de Transporte">
+                                                <option value="M2">M2 (Mixer)</option>
+                                                <option value="M4">M4 (Mixer)</option>
+                                                <option value="M6">M6 (Mixer)</option>
+                                                <option value="M7">M7 (Mixer)</option>
+                                                <option value="M8">M8 (Mixer)</option>
+                                                <option value="M9">M9 (Mixer)</option>
+                                                <option value="M10">M10 (Mixer)</option>
+                                                <option value="M11">M11 (Mixer)</option>
+                                                <option value="M12">M12 (Mixer)</option>
+                                            </optgroup>
+                                            <optgroup label="Bombas / Equipos">
+                                                <option value="M1">M1 (Exclusivo Bomba)</option>
+                                            </optgroup>
+                                        </select>
+                                        <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar a la Secuencia</button>
+                                    </div>
+                                    <div class="secuencia-lista" id="secuencia-lista-container">
+                                        <!-- Los camiones agregados se ordenan acá -->
+                                        <em style="color: #7f8c8d; font-size: 12px;" id="secuencia-vacia-msg">No hay camiones asignados en este pedido.</em>
+                                    </div>
+                                </div>
+                          </div>
+
                           <div class="form-group">
                                 <label for="tipoHormigon">Tipo de H° (Principal)</label>
                                 <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B) o H13 1/3" required>
@@ -537,6 +614,7 @@
                                 <thead>
                                       <tr>
                                             <th>Hora</th>
+                                            <th>Orden de Salida (Mixers)</th>
                                             <th>Cliente</th>
                                             <th>H° e Ítems Extra</th>
                                             <th>Ubicación</th>
@@ -546,7 +624,7 @@
                                       </tr>
                                 </thead>
                                 <tbody id="orders-list">
-                                      <tr><td colspan="7" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
+                                      <tr><td colspan="8" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
                                 </tbody>
                           </table>
                     </div>
@@ -579,6 +657,7 @@
 
         let orders = [];
         let currentUserRole = 'admin'; 
+        let camionesSecuenciaActual = []; // Array que guarda el orden de los camiones para el pedido en curso
 
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
@@ -603,6 +682,10 @@
         const clientContainerSelect = document.getElementById('client-container-select');
         const clientContainerInput = document.getElementById('client-container-input');
         const esFacturadoCheckbox = document.getElementById('es-facturado');
+        
+        const selectNuevoCamion = document.getElementById('select-nuevo-camion');
+        const secuenciaListaContainer = document.getElementById('secuencia-lista-container');
+        const secuenciaVaciaMsg = document.getElementById('secuencia-vacia-msg');
 
         const printDateTitle = document.getElementById('print-date-title');
         
@@ -668,6 +751,38 @@
             clienteInput.value = '';
         }
 
+        // Gestión de la secuencia ordenada de camiones
+        function agregarCamionSecuencia() {
+            const val = selectNuevoCamion.value;
+            if (!val) return;
+            camionesSecuenciaActual.push(val);
+            selectNuevoCamion.value = "";
+            renderizarSecuenciaUI();
+        }
+
+        function quitarCamionSecuencia(index) {
+            camionesSecuenciaActual.splice(index, 1);
+            renderizarSecuenciaUI();
+        }
+
+        function renderizarSecuenciaUI() {
+            secuenciaListaContainer.innerHTML = '';
+            if (camionesSecuenciaActual.length === 0) {
+                secuenciaListaContainer.innerHTML = `<em style="color: #7f8c8d; font-size: 12px;" id="secuencia-vacia-msg">No hay camiones asignados en este pedido.</em>`;
+                return;
+            }
+
+            camionesSecuenciaActual.forEach((camion, idx) => {
+                const div = document.createElement('div');
+                div.className = 'secuencia-item';
+                div.innerHTML = `
+                    <span>${idx + 1}º Salida: <strong>${camion}</strong></span>
+                    <button type="button" class="btn-remove-secuencia" onclick="quitarCamionSecuencia(${idx})">Quitar</button>
+                `;
+                secuenciaListaContainer.appendChild(div);
+            });
+        }
+
         function escucharPedidosEnNube() {
             db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
                 orders = [];
@@ -722,6 +837,7 @@
                     hora: document.getElementById('hora').value,
                     cliente: clienteFinal,
                     facturado: facturadoValor,
+                    camiones: [...camionesSecuenciaActual], // Guarda el array ordenado
                     tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
                     aditivos: aditivosList,
                     ubicacion: document.getElementById('ubicacion').value.trim(),
@@ -736,6 +852,8 @@
                     db.collection("pedidos_hormigon").add(orderData).then(() => {
                         cancelarNuevoCliente();
                         esFacturadoCheckbox.checked = false;
+                        camionesSecuenciaActual = [];
+                        renderizarSecuenciaUI();
                         document.getElementById('tipoHormigon').value = '';
                         document.getElementById('cantidad').value = '';
                         document.getElementById('observaciones').value = '';
@@ -750,7 +868,7 @@
               if (!orderToEdit) return;
 
               if (currentUserRole === 'plantista') {
-                  let nuevoVolumen = prompt("Modificar Volumen / m³ del camión:", orderToEdit.cantidad);
+                  let nuevoVolumen = prompt("Modificar Volumen / m³ del pedido:", orderToEdit.cantidad);
                   if (nuevoVolumen !== null && nuevoVolumen.trim() !== "") {
                       db.collection("pedidos_hormigon").doc(firebaseId).update({ cantidad: nuevoVolumen.trim() });
                   }
@@ -764,6 +882,10 @@
               cancelarNuevoCliente();
               clienteSelect.value = orderToEdit.cliente;
               esFacturadoCheckbox.checked = !!orderToEdit.facturado;
+
+              // Cargar secuencia de camiones guardada
+              camionesSecuenciaActual = orderToEdit.camiones ? [...orderToEdit.camiones] : [];
+              renderizarSecuenciaUI();
 
               document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
               document.getElementById('ubicacion').value = orderToEdit.ubicacion;
@@ -788,6 +910,8 @@
               document.getElementById('fecha').value = filterDateInput.value;
               cancelarNuevoCliente();
               esFacturadoCheckbox.checked = false;
+              camionesSecuenciaActual = [];
+              renderizarSecuenciaUI();
               aditivosContainer.innerHTML = '';
               formTitle.textContent = "Cargar Nuevo Turno / Pedido";
               btnSubmit.textContent = "Guardar Pedido";
@@ -845,14 +969,16 @@
               }
 
               let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-              html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>Factura</th><th>H° / Aditivos</th><th>Volumen</th></tr></thead><tbody>`;
+              html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Orden Mixers</th><th>Obra</th><th>Factura</th><th>H° / Aditivos</th><th>Volumen</th></tr></thead><tbody>`;
               
               pedidosCliente.forEach(p => {
                     let facturaBadge = p.facturado ? `<span style="color:#27ae60; font-weight:bold;">Sí</span>` : `<span style="color:#7f8c8d;">No</span>`;
+                    let camionesTexto = p.camiones && p.camiones.length > 0 ? `<strong>${p.camiones.join(' ➔ ')}</strong>` : `<span style="color:#95a5a6;">-</span>`;
                     let aditivosTexto = p.aditivos && p.aditivos.length > 0 ? `<br><span style="color:#2980b9; font-size:11px;">+ ${p.aditivos.join(', ')}</span>` : '';
                     html += `<tr>
                           <td>${p.fecha}</td>
                           <td>${p.hora}</td>
+                          <td>${camionesTexto}</td>
                           <td>${p.ubicacion}</td>
                           <td>${facturaBadge}</td>
                           <td><strong>${p.tipoHormigon}</strong>${aditivosTexto}</td>
@@ -875,7 +1001,7 @@
               let dailySum = 0;
 
               if (filteredOrders.length === 0) {
-                    ordersList.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #7f8c8d;">No hay pedidos cargados para esta fecha.</td></tr>`;
+                    ordersList.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #7f8c8d;">No hay pedidos cargados para esta fecha.</td></tr>`;
               } else {
                     filteredOrders.forEach(order => {
                           let numVal = parseFloat(order.cantidad);
@@ -886,6 +1012,11 @@
                           let facturaBadge = order.facturado 
                               ? `<span style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 3px;">FACTURADO</span>` 
                               : `<span style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 3px;">SIN FACTURA</span>`;
+
+                          let camionesBadges = `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
+                          if (order.camiones && order.camiones.length > 0) {
+                              camionesBadges = order.camiones.map((c, idx) => `<span style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ');
+                          }
 
                           let aditivosHtml = '';
                           if (order.aditivos && order.aditivos.length > 0) {
@@ -902,13 +1033,14 @@
                               `;
                           } else {
                               accionesHtml = `
-                                  <button class="btn-edit" onclick="editOrder('${order.firebaseId}')" title="Ajustar volumen del camión">Editar Vol.</button>
+                                  <button class="btn-edit" onclick="editOrder('${order.firebaseId}')" title="Ajustar volumen">Editar Vol.</button>
                               `;
                           }
 
                           const row = document.createElement('tr');
                           row.innerHTML = `
                                 <td><strong>${order.hora}</strong></td>
+                                <td style="text-align: center;">${camionesBadges}</td>
                                 <td>${order.cliente}<br>${facturaBadge}</td>
                                 <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
                                 <td>${order.ubicacion}</td>
