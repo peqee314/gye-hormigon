@@ -190,29 +190,40 @@
             align-items: center;
         }
 
+        /* Formulario Interno en 2 Columnas */
+        .form-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group-full {
+            grid-column: span 2;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .form-group input, .form-group textarea, .form-group select {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .form-group textarea {
             resize: vertical;
-            height: 60px;
+            height: 55px;
         }
 
         .client-input-row {
@@ -223,7 +234,7 @@
         .btn-new-client {
             background-color: var(--secondary-color);
             padding: 0 12px;
-            font-size: 13px;
+            font-size: 12px;
             width: auto;
             white-space: nowrap;
         }
@@ -234,39 +245,41 @@
             align-items: center;
             gap: 8px;
             background: #f8f9fa;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
-            margin-top: 8px;
+            margin-top: 6px;
             cursor: pointer;
         }
         .factura-checkbox-container input {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
         .factura-checkbox-container label {
             margin: 0;
             cursor: pointer;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .secuencia-camiones-box {
             background: #f8f9fa;
             border: 1px solid var(--border-color);
-            padding: 10px;
+            padding: 8px;
             border-radius: 4px;
         }
         .secuencia-add-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin-bottom: 6px;
         }
         .secuencia-lista {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
+            max-height: 100px;
+            overflow-y: auto;
         }
         .secuencia-item {
             display: flex;
@@ -274,15 +287,15 @@
             align-items: center;
             background: white;
             border: 1px solid #bdc3c7;
-            padding: 6px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
         }
         .btn-add-secuencia {
             background-color: var(--secondary-color);
-            padding: 8px 12px;
-            font-size: 13px;
+            padding: 6px 10px;
+            font-size: 12px;
             width: auto;
         }
         .btn-add-secuencia:hover { background-color: #1a252f; }
@@ -291,57 +304,69 @@
             background-color: var(--gye-red);
             color: white;
             border: none;
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 10px;
         }
         .btn-remove-secuencia:hover { background-color: #c0392b; }
 
+        /* Contenedor de Subproductos */
         .aditivos-container {
-            background: #f8f9fa;
-            border: 1px dashed var(--border-color);
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .aditivo-headers {
             display: flex;
-            gap: 10px;
-            font-size: 11px;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 6px;
-            padding-right: 35px;
-        }
-
-        .aditivo-row {
-            display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-bottom: 8px;
-            align-items: center;
         }
 
-        .aditivo-row input {
-            padding: 9px;
-            font-size: 13px;
+        .aditivo-card {
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .aditivo-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 11px;
+            color: var(--secondary-color);
+        }
+
+        .subproducto-field {
+            margin-bottom: 6px;
+        }
+        .subproducto-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .subproducto-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 2px;
+        }
+
+        .subproducto-field input {
+            width: 100%;
+            padding: 7px;
+            font-size: 12px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             box-sizing: border-box;
             background: white;
         }
 
-        .aditivo-nombre { flex: 2.5; }
-        .aditivo-cantidad { flex: 1; }
-        .aditivo-precio { flex: 1.5; }
-
         .btn-add-item {
             background-color: #27ae60;
             padding: 8px 12px;
-            font-size: 13px;
-            width: auto;
-            margin-top: 5px;
+            font-size: 12px;
+            width: 100%;
         }
         .btn-add-item:hover { background-color: #219653; }
 
@@ -349,11 +374,11 @@
             background-color: var(--gye-red);
             color: white;
             border: none;
-            padding: 9px 12px;
-            border-radius: 4px;
+            padding: 2px 6px;
+            border-radius: 3px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 10px;
         }
         .btn-remove-item:hover { background-color: #c0392b; }
 
@@ -361,10 +386,10 @@
             background-color: var(--secondary-color);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             width: 100%;
             font-weight: bold;
             transition: background 0.2s;
@@ -566,116 +591,110 @@
         </div>
 
         <div class="grid-layout">
-             <!-- Formulario de Carga / Edición (Solo Admin) -->
+             <!-- Formulario de Carga / Edición en 2 Columnas (Solo Admin) -->
              <div class="card admin-only operator-form-only">
                  <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
                  <form id="order-form">
                       <input type="hidden" id="edit-id">
-                      <div class="form-group">
-                            <label for="fecha">Fecha</label>
-                            <input type="date" id="fecha" required>
-                      </div>
-                      <div class="form-group">
-                            <label for="hora">Hora del Turno</label>
-                            <input type="time" id="hora" required>
-                      </div>
-                      <div class="form-group">
-                            <label for="cliente">Cliente</label>
-                            <div class="client-input-row" id="client-container-select">
-                                <select id="cliente-select" style="flex:1;">
-                                    <option value="">-- Seleccionar Cliente --</option>
-                                </select>
-                                <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
-                            </div>
-                            <div class="client-input-row" id="client-container-input" style="display: none;">
-                                <input type="text" id="cliente-input" placeholder="Nombre del nuevo cliente..." style="flex:1;">
-                                <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
-                            </div>
-                            
-                            <div class="factura-checkbox-container">
-                                <input type="checkbox" id="es-facturado">
-                                <label for="es-facturado">Pedido con Factura</label>
-                            </div>
-                      </div>
-
-                      <!-- Secuencia Ordenada de Unidades Asignadas -->
-                      <div class="form-group">
-                            <label>Secuencia de Salida de Camiones (Orden de Carga)</label>
-                            <div class="secuencia-camiones-box">
-                                <div class="secuencia-add-row">
-                                    <select id="select-nuevo-camion" style="flex:1;">
-                                        <option value="">-- Seleccionar Unidad --</option>
-                                        <optgroup label="Mixers de Transporte">
-                                            <option value="M2">M2 (Mixer)</option>
-                                            <option value="M4">M4 (Mixer)</option>
-                                            <option value="M6">M6 (Mixer)</option>
-                                            <option value="M7">M7 (Mixer)</option>
-                                            <option value="M8">M8 (Mixer)</option>
-                                            <option value="M9">M9 (Mixer)</option>
-                                            <option value="M10">M10 (Mixer)</option>
-                                            <option value="M11">M11 (Mixer)</option>
-                                            <option value="M12">M12 (Mixer)</option>
-                                        </optgroup>
-                                        <optgroup label="Bombas / Equipos">
-                                            <option value="M1">M1 (Exclusivo Bomba)</option>
-                                        </optgroup>
-                                    </select>
-                                    <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar a la Secuencia</button>
+                      
+                      <div class="form-grid-2col">
+                            <!-- Columna Izquierda del Formulario -->
+                            <div>
+                                <div class="form-group">
+                                      <label for="fecha">Fecha</label>
+                                      <input type="date" id="fecha" required>
                                 </div>
-                                <div class="secuencia-lista" id="secuencia-lista-container">
-                                    <em style="color: #7f8c8d; font-size: 12px;" id="secuencia-vacia-msg">No hay camiones asignados en este pedido.</em>
+                                <div class="form-group">
+                                      <label for="hora">Hora del Turno</label>
+                                      <input type="time" id="hora" required>
+                                </div>
+                                <div class="form-group">
+                                      <label for="cliente">Cliente</label>
+                                      <div class="client-input-row" id="client-container-select">
+                                          <select id="cliente-select" style="flex:1;">
+                                              <option value="">-- Seleccionar Cliente --</option>
+                                          </select>
+                                          <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
+                                      </div>
+                                      <div class="client-input-row" id="client-container-input" style="display: none;">
+                                          <input type="text" id="cliente-input" placeholder="Nombre nuevo..." style="flex:1;">
+                                          <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
+                                      </div>
+                                      
+                                      <div class="factura-checkbox-container">
+                                          <input type="checkbox" id="es-facturado">
+                                          <label for="es-facturado">Pedido con Factura</label>
+                                      </div>
+                                </div>
+
+                                <div class="form-group">
+                                      <label>Secuencia Salida Camiones</label>
+                                      <div class="secuencia-camiones-box">
+                                          <div class="secuencia-add-row">
+                                              <select id="select-nuevo-camion" style="flex:1;">
+                                                  <option value="">-- Unidad --</option>
+                                                  <optgroup label="Mixers">
+                                                      <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
+                                                  </optgroup>
+                                                  <optgroup label="Bombas">
+                                                      <option value="M1">M1 (Bomba)</option>
+                                                  </optgroup>
+                                              </select>
+                                              <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
+                                          </div>
+                                          <div class="secuencia-lista" id="secuencia-lista-container">
+                                              <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
+                                          </div>
+                                      </div>
                                 </div>
                             </div>
-                      </div>
 
-                      <div class="form-group">
-                            <label for="tipoHormigon">Tipo de H° (Principal)</label>
-                            <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B) o H13 1/3" required>
-                      </div>
-
-                      <div class="form-group">
-                            <label for="cantidad">Volumen / m³ (Ej: 8)</label>
-                            <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
-                      </div>
-
-                      <div class="form-group">
-                            <label for="precioUnitario">Precio Referencia Hormigón por m³ ($)</label>
-                            <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
-                      </div>
-
-                      <!-- Condición de Pago / Comercial -->
-                      <div class="form-group">
-                            <label for="condicionPago">Condición de Pago / Comercial</label>
-                            <select id="condicionPago">
-                                <option value="normal">Cobro Normal / Cuenta Corriente</option>
-                                <option value="compensacion">Compensación / Trueque (No suma a cobrar)</option>
-                                <option value="acopio">Pagado en Acopio / Anticipado (No suma a cobrar)</option>
-                            </select>
-                      </div>
-
-                      <!-- Subproductos y Servicios Adicionales con Cabeceras y Anchura Correcta -->
-                      <div class="form-group">
-                            <label>Subproductos, Aditivos o Servicios Extra (Bombeo, etc.)</label>
-                            <div class="aditivos-container" id="aditivos-container">
-                                <div class="aditivo-headers" id="aditivo-headers" style="display: none;">
-                                    <span style="flex: 2.5;">Descripción</span>
-                                    <span style="flex: 1;">Cant.</span>
-                                    <span style="flex: 1.5;">Precio Unit. ($)</span>
+                            <!-- Columna Derecha del Formulario -->
+                            <div>
+                                <div class="form-group">
+                                      <label for="tipoHormigon">Tipo de H° (Principal)</label>
+                                      <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B)" required>
+                                </div>
+                                <div class="form-group">
+                                      <label for="cantidad">Volumen / m³</label>
+                                      <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
+                                </div>
+                                <div class="form-group">
+                                      <label for="precioUnitario">Precio Referencia H° ($/m³)</label>
+                                      <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
+                                </div>
+                                <div class="form-group">
+                                      <label for="condicionPago">Condición de Pago / Comercial</label>
+                                      <select id="condicionPago">
+                                          <option value="normal">Cobro Normal / Cta. Cte.</option>
+                                          <option value="compensacion">Compensación / Trueque</option>
+                                          <option value="acopio">Pagado en Acopio</option>
+                                      </select>
                                 </div>
                             </div>
-                            <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Subproducto / Servicio</button>
-                      </div>
 
-                      <div class="form-group">
-                            <label for="ubicacion">Ubicación / Obra</label>
-                            <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
+                            <!-- Campos Anchos (Ocupan todo el ancho de las 2 columnas) -->
+                            <div class="form-group form-group-full">
+                                  <label>Subproductos, Aditivos o Servicios Extra</label>
+                                  <div class="aditivos-container" id="aditivos-container"></div>
+                                  <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Subproducto / Servicio</button>
+                            </div>
+
+                            <div class="form-group">
+                                  <label for="ubicacion">Ubicación / Obra</label>
+                                  <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
+                            </div>
+
+                            <div class="form-group">
+                                  <label for="observaciones">Observaciones</label>
+                                  <textarea id="observaciones" placeholder="Ej: Descarga lenta..."></textarea>
+                            </div>
+
+                            <div class="form-group form-group-full">
+                                  <button type="submit" id="btn-submit">Guardar Pedido</button>
+                                  <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
+                            </div>
                       </div>
-                      <div class="form-group">
-                            <label for="observaciones">Información Adicional / Observaciones</label>
-                            <textarea id="observaciones" placeholder="Ej: Solicitó Pedro. Descarga lenta, etc."></textarea>
-                      </div>
-                      <button type="submit" id="btn-submit">Guardar Pedido</button>
-                      <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
                  </form>
              </div>
 
@@ -767,7 +786,6 @@
         const dailyTotalEl = document.getElementById('daily-total');
         const dailyMoneyTotalEl = document.getElementById('daily-money-total');
         const aditivosContainer = document.getElementById('aditivos-container');
-        const aditivoHeaders = document.getElementById('aditivo-headers');
         const selectClientHistory = document.getElementById('select-client-history');
         const clientHistoryResults = document.getElementById('client-history-results');
         
@@ -873,7 +891,7 @@
         function renderizarSecuenciaUI() {
             secuenciaListaContainer.innerHTML = '';
             if (camionesSecuenciaActual.length === 0) {
-                secuenciaListaContainer.innerHTML = `<em style="color: #7f8c8d; font-size: 12px;" id="secuencia-vacia-msg">No hay camiones asignados en este pedido.</em>`;
+                secuenciaListaContainer.innerHTML = `<em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>`;
                 return;
             }
 
@@ -881,8 +899,8 @@
                 const div = document.createElement('div');
                 div.className = 'secuencia-item';
                 div.innerHTML = `
-                    <span>${idx + 1}º Salida: <strong>${camion}</strong></span>
-                    <button type="button" class="btn-remove-secuencia" onclick="quitarCamionSecuencia(${idx})">Quitar</button>
+                    <span>${idx + 1}º: <strong>${camion}</strong></span>
+                    <button type="button" class="btn-remove-secuencia" onclick="quitarCamionSecuencia(${idx})">X</button>
                 `;
                 secuenciaListaContainer.appendChild(div);
             });
@@ -898,26 +916,28 @@
             });
         }
 
-        function actualizarVisibilidadHeaders() {
-            const filas = aditivosContainer.querySelectorAll('.aditivo-row');
-            if (filas.length > 0) {
-                aditivoHeaders.style.display = 'flex';
-            } else {
-                aditivoHeaders.style.display = 'none';
-            }
-        }
-
         function agregarFilaAditivo(nombre = '', cantidad = '', precio = '') {
-            const div = document.createElement('div');
-            div.className = 'aditivo-row';
-            div.innerHTML = `
-                <input type="text" class="aditivo-nombre" placeholder="Ej: Bombeo / Macrofibra" value="${nombre}">
-                <input type="number" step="0.01" class="aditivo-cantidad" placeholder="Ej: 1" value="${cantidad}">
-                <input type="number" step="0.01" class="aditivo-precio" placeholder="Ej: 45000" value="${precio}">
-                <button type="button" class="btn-remove-item" onclick="this.parentElement.remove(); actualizarVisibilidadHeaders();">X</button>
+            const card = document.createElement('div');
+            card.className = 'aditivo-card';
+            card.innerHTML = `
+                <div class="aditivo-card-header">
+                    <span>Subproducto / Servicio Adicional</span>
+                    <button type="button" class="btn-remove-item" onclick="this.closest('.aditivo-card').remove()">X</button>
+                </div>
+                <div class="subproducto-field">
+                    <label>Descripción</label>
+                    <input type="text" class="aditivo-nombre" placeholder="Ej: Bombeo / Macrofibra" value="${nombre}">
+                </div>
+                <div class="subproducto-field">
+                    <label>Cantidad Consumida</label>
+                    <input type="number" step="0.01" class="aditivo-cantidad" placeholder="Ej: 1" value="${cantidad}">
+                </div>
+                <div class="subproducto-field">
+                    <label>Precio Unitario ($)</label>
+                    <input type="number" step="0.01" class="aditivo-precio" placeholder="Ej: 45000" value="${precio}">
+                </div>
             `;
-            aditivosContainer.appendChild(div);
-            actualizarVisibilidadHeaders();
+            aditivosContainer.appendChild(card);
         }
 
         orderForm.addEventListener('submit', function(e) {
@@ -932,12 +952,12 @@
                 return;
             }
 
-            const aditivosRows = document.querySelectorAll('.aditivo-row');
+            const aditivosCards = document.querySelectorAll('.aditivo-card');
             let aditivosList = [];
-            aditivosRows.forEach(row => {
-                let nombre = row.querySelector('.aditivo-nombre').value.trim();
-                let cantidad = parseFloat(row.querySelector('.aditivo-cantidad').value) || 0;
-                let precio = parseFloat(row.querySelector('.aditivo-precio').value) || 0;
+            aditivosCards.forEach(card => {
+                let nombre = card.querySelector('.aditivo-nombre').value.trim();
+                let cantidad = parseFloat(card.querySelector('.aditivo-cantidad').value) || 0;
+                let precio = parseFloat(card.querySelector('.aditivo-precio').value) || 0;
                 if (nombre !== '') {
                     aditivosList.push({ nombre, cantidad, precio });
                 }
@@ -972,8 +992,7 @@
                     condicionPagoSelect.value = 'normal';
                     document.getElementById('cantidad').value = '';
                     document.getElementById('observaciones').value = '';
-                    aditivosContainer.querySelectorAll('.aditivo-row').forEach(el => el.remove());
-                    actualizarVisibilidadHeaders();
+                    aditivosContainer.innerHTML = '';
                     clienteSelect.focus();
                 });
             }
@@ -1017,7 +1036,7 @@
             document.getElementById('cantidad').value = orderToEdit.cantidad;
             document.getElementById('observaciones').value = orderToEdit.observaciones;
 
-            aditivosContainer.querySelectorAll('.aditivo-row').forEach(el => el.remove());
+            aditivosContainer.innerHTML = '';
             if (orderToEdit.aditivos && Array.isArray(orderToEdit.aditivos)) {
                 orderToEdit.aditivos.forEach(item => {
                     if (typeof item === 'string') {
@@ -1027,7 +1046,6 @@
                     }
                 });
             }
-            actualizarVisibilidadHeaders();
 
             formTitle.textContent = "Editar Turno / Pedido";
             btnSubmit.textContent = "Actualizar Pedido";
@@ -1044,8 +1062,7 @@
             condicionPagoSelect.value = 'normal';
             camionesSecuenciaActual = [];
             renderizarSecuenciaUI();
-            aditivosContainer.querySelectorAll('.aditivo-row').forEach(el => el.remove());
-            actualizarVisibilidadHeaders();
+            aditivosContainer.innerHTML = '';
             formTitle.textContent = "Cargar Nuevo Turno / Pedido";
             btnSubmit.textContent = "Guardar Pedido";
             btnCancel.style.display = "none";
