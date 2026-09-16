@@ -113,6 +113,7 @@
             cursor: pointer;
             transition: all 0.2s;
             background: #fafafa;
+            text-align: left;
         }
 
         .role-card:hover {
@@ -120,12 +121,12 @@
             background: #f0f3f4;
         }
 
-        .admin-auth-box {
+        .auth-box {
             display: none;
-            margin-top: 15px;
+            margin-top: 10px;
             text-align: left;
             background: #f8f9fa;
-            padding: 12px;
+            padding: 10px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
         }
@@ -153,11 +154,17 @@
             gap: 20px;
         }
 
-        .operator-mode .grid-layout {
-            grid-template-columns: 1fr;
-        }
-        .operator-mode .admin-only {
+        /* Control de visibilidad según roles */
+        body.operator-mode .admin-only, 
+        body.operator-mode .factura-only,
+        body.factura-mode .admin-only,
+        body.factura-mode .operator-form-only {
             display: none !important;
+        }
+
+        body.operator-mode .grid-layout,
+        body.factura-mode .grid-layout {
+            grid-template-columns: 1fr;
         }
 
         @media (max-width: 1000px) {
@@ -247,7 +254,6 @@
             font-size: 13px;
         }
 
-        /* Contenedor para armar la secuencia ordenada de camiones */
         .secuencia-camiones-box {
             background: #f8f9fa;
             border: 1px solid var(--border-color);
@@ -416,8 +422,9 @@
         .print-header { display: none; }
 
         @media print {
-            body { background-color: white; padding: 0; }
+            body { background-color: white; padding: 0; color: black; }
             header, .dashboard-stats, .grid-layout > .card:first-child, .filter-section, .no-print { display: none !important; }
+            
             .print-header {
                 display: flex;
                 justify-content: space-between;
@@ -427,12 +434,42 @@
                 margin-bottom: 15px;
             }
             .print-header img { height: 40px; }
-            .print-header h2 { margin: 0; font-size: 16px; }
+            .print-header h2 { margin: 0; font-size: 16px; color: black; }
+
             .container { max-width: 100%; margin: 0; padding: 0; }
             .grid-layout { display: block; }
             .card { box-shadow: none; border: none; padding: 0; margin: 0; }
-            table { font-size: 11px; width: 100%; }
-            table th, table td { border: 1px solid #333; padding: 6px; }
+            
+            table { font-size: 12px; width: 100%; border-collapse: collapse; }
+            table th, table td { border: 1px solid #000 !important; padding: 8px; color: black !important; }
+            table th { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            
+            .print-obs {
+                color: #000000 !important;
+                font-weight: bold !important;
+                font-size: 13px !important;
+            }
+
+            .print-badge-factura {
+                border: 1px solid #000 !important;
+                background: #fff !important;
+                color: #000 !important;
+                padding: 1px 4px;
+                font-weight: bold;
+                font-size: 10px;
+            }
+
+            .print-badge-camion {
+                border: 1px solid #000 !important;
+                background: #000 !important;
+                color: #fff !important;
+                padding: 2px 5px;
+                font-weight: bold;
+                font-size: 11px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
             .col-acciones, .action-buttons { display: none !important; }
         }
     </style>
@@ -450,221 +487,236 @@
                 <p style="margin: 0; font-size: 12px; color: #666;">Acceso rápido al parte diario y ajuste de volúmenes.</p>
             </div>
 
-            <div class="role-card" onclick="mostrarAuthAdmin()">
+            <div class="role-card" onclick="mostrarAuth('admin')">
                 <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">👑 Administrador</h3>
                 <p style="margin: 0; font-size: 12px; color: #666;">Acceso total a gestión, carga, historial y métricas.</p>
+                <div id="auth-box-admin" class="auth-box">
+                    <input type="password" id="pass-admin" placeholder="Contraseña Admin..." style="margin-bottom: 6px; font-size:12px;">
+                    <button type="button" onclick="verificarLogin('admin')" style="padding: 6px; font-size: 12px;">Entrar</button>
+                </div>
+            </div>
+
+            <div class="role-card" onclick="mostrarAuth('factura')">
+                <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">📄 Facturación</h3>
+                <p style="margin: 0; font-size: 12px; color: #666;">Gestión de precios y montos de días anteriores.</p>
+                <div id="auth-box-factura" class="auth-box">
+                    <input type="password" id="pass-factura" placeholder="Contraseña Facturación..." style="margin-bottom: 6px; font-size:12px;">
+                    <button type="button" onclick="verificarLogin('factura')" style="padding: 6px; font-size: 12px;">Entrar</button>
+                </div>
             </div>
         </div>
-
-        <div id="admin-auth-box" class="admin-auth-box">
-            <label for="admin-pass" style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px;">Ingresá la contraseña de Admin:</label>
-            <input type="password" id="admin-pass" placeholder="Contraseña..." style="margin-bottom: 8px;">
-            <button type="button" onclick="verificarAdmin()" style="padding: 8px; font-size: 14px;">Confirmar Acceso</button>
-            <div id="login-error" style="color: var(--gye-red); font-size: 12px; margin-top: 5px;"></div>
-        </div>
+        <div id="login-error" style="color: var(--gye-red); font-size: 12px; margin-top: 10px;"></div>
     </div>
 
     <!-- PANTALLA PRINCIPAL DEL SISTEMA -->
     <div class="container" id="main-app" style="display: none;">
         <header>
-              <div class="header-brand">
-                  <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" class="header-logo" onerror="this.style.display='none'">
-                  <div>
-                      <h1>GyE <span>DIVISIÓN HORMIGÓN</span></h1>
-                      <div style="font-size: 12px; color: #ecf0f1; letter-spacing: 1px;">SISTEMA DE GESTIÓN ONLINE</div>
-                  </div>
-              </div>
-              <div class="user-info">
-                  <span id="user-display-role">Perfil: --</span>
-                  <button class="btn-logout" onclick="cerrarSesion()">Cambiar Perfil</button>
-              </div>
+             <div class="header-brand">
+                 <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" class="header-logo" onerror="this.style.display='none'">
+                 <div>
+                     <h1>GyE <span>DIVISIÓN HORMIGÓN</span></h1>
+                     <div style="font-size: 12px; color: #ecf0f1; letter-spacing: 1px;">SISTEMA DE GESTIÓN ONLINE</div>
+                 </div>
+             </div>
+             <div class="user-info">
+                 <span id="user-display-role">Perfil: --</span>
+                 <button class="btn-logout" onclick="cerrarSesion()">Cambiar Perfil</button>
+             </div>
         </header>
 
         <!-- Métricas Rápidas (Solo Admin) -->
         <div class="dashboard-stats admin-only">
-              <div>Total m³ del Mes: <span id="monthly-total">0.00</span> m³</div>
-              <div>Pedidos Registrados (Mes): <span id="monthly-count">0</span></div>
+             <div>Total m³ del Mes: <span id="monthly-total">0.00</span> m³</div>
+             <div>Pedidos Registrados (Mes): <span id="monthly-count">0</span></div>
         </div>
 
         <!-- Historial de Clientes (Solo Admin) -->
         <div class="card no-print admin-only">
-              <h2>Historial de Cliente</h2>
-              <div class="client-history-box">
-                    <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
-                    <select id="select-client-history" onchange="verHistorialCliente()">
-                          <option value="">-- Seleccionar Cliente --</option>
-                    </select>
-                    <div id="client-history-results" style="margin-top: 10px; font-size: 13px;"></div>
-              </div>
+             <h2>Historial de Cliente</h2>
+             <div class="client-history-box">
+                 <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
+                 <select id="select-client-history" onchange="verHistorialCliente()">
+                     <option value="">-- Seleccionar Cliente --</option>
+                 </select>
+                 <div id="client-history-results" style="margin-top: 10px; font-size: 13px;"></div>
+             </div>
         </div>
 
         <div class="grid-layout">
-              <!-- Formulario de Carga / Edición (Solo Admin) -->
-              <div class="card admin-only">
-                    <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
-                    <form id="order-form">
-                          <input type="hidden" id="edit-id">
-                          <div class="form-group">
-                                <label for="fecha">Fecha</label>
-                                <input type="date" id="fecha" required>
-                          </div>
-                          <div class="form-group">
-                                <label for="hora">Hora del Turno</label>
-                                <input type="time" id="hora" required>
-                          </div>
-                          <div class="form-group">
-                                <label for="cliente">Cliente</label>
-                                <div class="client-input-row" id="client-container-select">
-                                    <select id="cliente-select" style="flex:1;">
-                                        <option value="">-- Seleccionar Cliente --</option>
+             <!-- Formulario de Carga / Edición (Solo Admin) -->
+             <div class="card admin-only operator-form-only">
+                 <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
+                 <form id="order-form">
+                      <input type="hidden" id="edit-id">
+                      <div class="form-group">
+                            <label for="fecha">Fecha</label>
+                            <input type="date" id="fecha" required>
+                      </div>
+                      <div class="form-group">
+                            <label for="hora">Hora del Turno</label>
+                            <input type="time" id="hora" required>
+                      </div>
+                      <div class="form-group">
+                            <label for="cliente">Cliente</label>
+                            <div class="client-input-row" id="client-container-select">
+                                <select id="cliente-select" style="flex:1;">
+                                    <option value="">-- Seleccionar Cliente --</option>
+                                </select>
+                                <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
+                            </div>
+                            <div class="client-input-row" id="client-container-input" style="display: none;">
+                                <input type="text" id="cliente-input" placeholder="Nombre del nuevo cliente..." style="flex:1;">
+                                <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
+                            </div>
+                            
+                            <div class="factura-checkbox-container">
+                                <input type="checkbox" id="es-facturado">
+                                <label for="es-facturado">Pedido con Factura</label>
+                            </div>
+                      </div>
+
+                      <!-- Secuencia Ordenada de Unidades Asignadas -->
+                      <div class="form-group">
+                            <label>Secuencia de Salida de Camiones (Orden de Carga)</label>
+                            <div class="secuencia-camiones-box">
+                                <div class="secuencia-add-row">
+                                    <select id="select-nuevo-camion" style="flex:1;">
+                                        <option value="">-- Seleccionar Unidad --</option>
+                                        <optgroup label="Mixers de Transporte">
+                                            <option value="M2">M2 (Mixer)</option>
+                                            <option value="M4">M4 (Mixer)</option>
+                                            <option value="M6">M6 (Mixer)</option>
+                                            <option value="M7">M7 (Mixer)</option>
+                                            <option value="M8">M8 (Mixer)</option>
+                                            <option value="M9">M9 (Mixer)</option>
+                                            <option value="M10">M10 (Mixer)</option>
+                                            <option value="M11">M11 (Mixer)</option>
+                                        </optgroup>
+                                        <optgroup label="Bombas / Equipos">
+                                            <option value="M1">M1 (Exclusivo Bomba)</option>
+                                        </optgroup>
                                     </select>
-                                    <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
+                                    <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar a la Secuencia</button>
                                 </div>
-                                <div class="client-input-row" id="client-container-input" style="display: none;">
-                                    <input type="text" id="cliente-input" placeholder="Nombre del nuevo cliente..." style="flex:1;">
-                                    <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
+                                <div class="secuencia-lista" id="secuencia-lista-container">
+                                    <em style="color: #7f8c8d; font-size: 12px;" id="secuencia-vacia-msg">No hay camiones asignados en este pedido.</em>
                                 </div>
-                                
-                                <div class="factura-checkbox-container">
-                                    <input type="checkbox" id="es-facturado">
-                                    <label for="es-facturado">Pedido con Factura</label>
-                                </div>
-                          </div>
+                            </div>
+                      </div>
 
-                          <!-- Secuencia Ordenada de Unidades Asignadas -->
-                          <div class="form-group">
-                                <label>Secuencia de Salida de Camiones (Orden de Carga)</label>
-                                <div class="secuencia-camiones-box">
-                                    <div class="secuencia-add-row">
-                                        <select id="select-nuevo-camion" style="flex:1;">
-                                            <option value="">-- Seleccionar Unidad --</option>
-                                            <optgroup label="Mixers de Transporte">
-                                                <option value="M2">M2 (Mixer)</option>
-                                                <option value="M4">M4 (Mixer)</option>
-                                                <option value="M6">M6 (Mixer)</option>
-                                                <option value="M7">M7 (Mixer)</option>
-                                                <option value="M8">M8 (Mixer)</option>
-                                                <option value="M9">M9 (Mixer)</option>
-                                                <option value="M10">M10 (Mixer)</option>
-                                                <option value="M11">M11 (Mixer)</option>
-                                                <option value="M12">M12 (Mixer)</option>
-                                            </optgroup>
-                                            <optgroup label="Bombas / Equipos">
-                                                <option value="M1">M1 (Exclusivo Bomba)</option>
-                                            </optgroup>
-                                        </select>
-                                        <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar a la Secuencia</button>
-                                    </div>
-                                    <div class="secuencia-lista" id="secuencia-lista-container">
-                                        <!-- Los camiones agregados se ordenan acá -->
-                                        <em style="color: #7f8c8d; font-size: 12px;" id="secuencia-vacia-msg">No hay camiones asignados en este pedido.</em>
-                                    </div>
-                                </div>
-                          </div>
+                      <div class="form-group">
+                            <label for="tipoHormigon">Tipo de H° (Principal)</label>
+                            <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B) o H13 1/3" required>
+                      </div>
 
-                          <div class="form-group">
-                                <label for="tipoHormigon">Tipo de H° (Principal)</label>
-                                <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B) o H13 1/3" required>
-                          </div>
+                      <!-- Costo / Precio Unitario (Solo Admin) -->
+                      <div class="form-group">
+                            <label for="precioUnitario">Precio / Costo Unitario por m³ ($)</label>
+                            <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
+                      </div>
 
-                          <div class="form-group">
-                                <label>Ítems Adicionales / Aditivos (Opcional)</label>
-                                <div class="aditivos-container" id="aditivos-container"></div>
-                                <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Aditivo / Ítem</button>
-                          </div>
+                      <div class="form-group">
+                            <label>Ítems Adicionales / Aditivos (Opcional)</label>
+                            <div class="aditivos-container" id="aditivos-container"></div>
+                            <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Aditivo / Ítem</button>
+                      </div>
 
-                          <div class="form-group">
-                                <label for="ubicacion">Ubicación / Obra</label>
-                                <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
-                          </div>
-                          <div class="form-group">
-                                <label for="cantidad">Volumen / m³ (Ej: 8 o "1 camión")</label>
-                                <input type="text" id="cantidad" placeholder="Ej: 7.5 o 1 camión" required>
-                          </div>
-                          <div class="form-group">
-                                <label for="observaciones">Información Adicional / Observaciones</label>
-                                <textarea id="observaciones" placeholder="Ej: Solicitó Pedro. Descarga lenta, etc."></textarea>
-                          </div>
-                          <button type="submit" id="btn-submit">Guardar Pedido</button>
-                          <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
-                    </form>
-              </div>
+                      <div class="form-group">
+                            <label for="ubicacion">Ubicación / Obra</label>
+                            <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
+                      </div>
+                      <div class="form-group">
+                            <label for="cantidad">Volumen / m³ (Ej: 8)</label>
+                            <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
+                      </div>
+                      <div class="form-group">
+                            <label for="observaciones">Información Adicional / Observaciones</label>
+                            <textarea id="observaciones" placeholder="Ej: Solicitó Pedro. Descarga lenta, etc."></textarea>
+                      </div>
+                      <button type="submit" id="btn-submit">Guardar Pedido</button>
+                      <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
+                 </form>
+             </div>
 
-              <!-- Vista de Despacho y Parte Diario -->
-              <div class="card">
-                    <h2>
-                        <span>Parte Diario de Despacho</span>
-                        <button class="btn-print" onclick="window.print()">🖨️ Imprimir Listado</button>
-                    </h2>
-                    
-                    <div class="print-header">
-                          <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" onerror="this.style.display='none'">
-                          <h2>PARTE DIARIO DE DESPACHO - <span id="print-date-title"></span></h2>
-                    </div>
+             <!-- Vista de Despacho y Parte Diario -->
+             <div class="card" style="grid-column: span 2;" id="main-content-card">
+                  <h2>
+                      <span id="table-title">Parte Diario de Despacho</span>
+                      <button class="btn-print" onclick="window.print()">🖨️ Imprimir Listado</button>
+                  </h2>
+                  
+                  <div class="print-header">
+                      <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" onerror="this.style.display='none'">
+                      <h2>LISTADO DE DESPACHO - <span id="print-date-title"></span></h2>
+                  </div>
 
-                    <div class="filter-section">
-                          <div class="form-group" style="flex: 1; margin: 0;">
-                                <label for="filter-date">Filtrar por Día:</label>
-                                <input type="date" id="filter-date">
-                          </div>
-                    </div>
+                  <div class="filter-section">
+                      <div class="form-group" style="flex: 1; margin: 0;">
+                            <label for="filter-date" id="filter-date-label">Filtrar por Día:</label>
+                            <input type="date" id="filter-date">
+                      </div>
+                  </div>
 
-                    <div style="overflow-x: auto;">
-                          <table id="orders-table">
-                                <thead>
-                                      <tr>
-                                            <th>Hora</th>
-                                            <th>Orden de Salida (Mixers)</th>
-                                            <th>Cliente</th>
-                                            <th>H° e Ítems Extra</th>
-                                            <th>Ubicación</th>
-                                            <th>Volumen</th>
-                                            <th>Observaciones</th>
-                                            <th class="col-acciones">Acciones</th>
-                                      </tr>
-                                </thead>
-                                <tbody id="orders-list">
-                                      <tr><td colspan="8" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
-                                </tbody>
-                          </table>
-                    </div>
-                    <div style="margin-top: 15px; text-align: right; font-size: 16px; font-weight: bold;">
-                          Total del Día Seleccionado: <span id="daily-total">0.00</span> m³
-                    </div>
-              </div>
+                  <div style="overflow-x: auto;">
+                      <table id="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Orden de Salida (Mixers)</th>
+                                    <th>Cliente</th>
+                                    <th>H° e Ítems Extra</th>
+                                    <th>Ubicación</th>
+                                    <th>Volumen</th>
+                                    <th class="factura-only">Precio Unit. ($)</th>
+                                    <th class="factura-only">Total ($)</th>
+                                    <th>Observaciones</th>
+                                    <th class="col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-list">
+                                <tr><td colspan="10" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
+                            </tbody>
+                      </table>
+                  </div>
+                  <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold;">
+                      <div class="factura-only" id="total-dinero-container" style="color: #27ae60;">
+                          Total Facturación Día: $<span id="daily-money-total">0.00</span>
+                      </div>
+                      <div style="margin-left: auto;">
+                          Total Volumen Día: <span id="daily-total">0.00</span> m³
+                      </div>
+                  </div>
+             </div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURACIÓN DE FIREBASE (Tus credenciales)
-        // ==========================================
         const firebaseConfig = {
-    apiKey: "AIzaSyCqhSttXPpa51TV1wOiOyYy-NYqM7EV8w0",
-    authDomain: "gyehormigon.firebaseapp.com",
-    projectId: "gyehormigon",
-    storageBucket: "gyehormigon.firebasestorage.app",
-    messagingSenderId: "1002093938030",
-    appId: "1:1002093938030:web:5b7a1e1ec4818895f2ad7f",
-    measurementId: "G-HGF98N5H95"
-  };
+            apiKey: "AIzaSyCqhSttXPpa51TV1wOiOyYy-NYqM7EV8w0",
+            authDomain: "gyehormigon.firebaseapp.com",
+            projectId: "gyehormigon",
+            storageBucket: "gyehormigon.firebasestorage.app",
+            messagingSenderId: "1002093938030",
+            appId: "1:1002093938030:web:5b7a1e1ec4818895f2ad7f",
+            measurementId: "G-HGF98N5H95"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 🔐 TU CONTRASEÑA DE ADMINISTRADOR:
-        const PASSWORD_ADMIN = "admin123"; 
+        // 🔐 CONTRASEÑAS DE ACCESO:
+        const PASSWORDS = {
+            admin: "admin123",
+            factura: "factura123"
+        };
 
         let orders = [];
         let currentUserRole = 'admin'; 
-        let camionesSecuenciaActual = []; // Array que guarda el orden de los camiones para el pedido en curso
+        let camionesSecuenciaActual = []; 
 
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
         const appBody = document.getElementById('app-body');
-        const adminAuthBox = document.getElementById('admin-auth-box');
-        const adminPassInput = document.getElementById('admin-pass');
-        const loginError = document.getElementById('login-error');
         const userDisplayRole = document.getElementById('user-display-role');
 
         const orderForm = document.getElementById('order-form');
@@ -673,6 +725,7 @@
         const monthlyTotalEl = document.getElementById('monthly-total');
         const monthlyCountEl = document.getElementById('monthly-count');
         const dailyTotalEl = document.getElementById('daily-total');
+        const dailyMoneyTotalEl = document.getElementById('daily-money-total');
         const aditivosContainer = document.getElementById('aditivos-container');
         const selectClientHistory = document.getElementById('select-client-history');
         const clientHistoryResults = document.getElementById('client-history-results');
@@ -685,8 +738,6 @@
         
         const selectNuevoCamion = document.getElementById('select-nuevo-camion');
         const secuenciaListaContainer = document.getElementById('secuencia-lista-container');
-        const secuenciaVaciaMsg = document.getElementById('secuencia-vacia-msg');
-
         const printDateTitle = document.getElementById('print-date-title');
         
         const formTitle = document.getElementById('form-title');
@@ -698,44 +749,58 @@
         document.getElementById('fecha').value = todayStr;
         filterDateInput.value = todayStr;
 
+        function mostrarAuth(tipo) {
+            document.getElementById('auth-box-admin').style.display = 'none';
+            document.getElementById('auth-box-factura').style.display = 'none';
+            document.getElementById(`auth-box-${tipo}`).style.display = 'block';
+            document.getElementById(`pass-${tipo}`).focus();
+        }
+
+        function verificarLogin(tipo) {
+            const pass = document.getElementById(`pass-${tipo}`).value;
+            if (pass === PASSWORDS[tipo]) {
+                currentUserRole = tipo;
+                configurarInterfazRol();
+            } else {
+                document.getElementById('login-error').textContent = "Contraseña incorrecta.";
+            }
+        }
+
         function ingresarComoPlantista() {
             currentUserRole = 'plantista';
-            userDisplayRole.textContent = "Perfil: Plantista / Operador";
-            appBody.classList.add('operator-mode');
+            configurarInterfazRol();
+        }
+
+        function configurarInterfazRol() {
+            appBody.className = '';
+            if (currentUserRole === 'plantista') {
+                userDisplayRole.textContent = "Perfil: Plantista / Operador";
+                appBody.classList.add('operator-mode');
+            } else if (currentUserRole === 'factura') {
+                userDisplayRole.textContent = "Perfil: Facturación";
+                appBody.classList.add('factura-mode');
+                // Forzar fecha a ayer o anterior por regla de negocio
+                let ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                filterDateInput.value = ayer.toISOString().split('T')[0];
+                filterDateInput.max = ayer.toISOString().split('T')[0]; // No permite ver hoy ni futuro
+            } else {
+                userDisplayRole.textContent = "Perfil: Administración";
+            }
+
             loginScreen.style.display = 'none';
             mainApp.style.display = 'block';
             escucharPedidosEnNube();
         }
 
-        function mostrarAuthAdmin() {
-            adminAuthBox.style.display = 'block';
-            adminPassInput.focus();
-        }
-
-        function verificarAdmin() {
-            const pass = adminPassInput.value;
-            if (pass === PASSWORD_ADMIN) {
-                currentUserRole = 'admin';
-                userDisplayRole.textContent = "Perfil: Administración";
-                appBody.classList.remove('operator-mode');
-                loginScreen.style.display = 'none';
-                mainApp.style.display = 'block';
-                adminPassInput.value = '';
-                adminAuthBox.style.display = 'none';
-                loginError.textContent = '';
-                escucharPedidosEnNube();
-            } else {
-                loginError.textContent = "Contraseña incorrecta.";
-                adminPassInput.focus();
-            }
-        }
-
         function cerrarSesion() {
             loginScreen.style.display = 'block';
             mainApp.style.display = 'none';
-            adminAuthBox.style.display = 'none';
-            adminPassInput.value = '';
-            loginError.textContent = '';
+            document.getElementById('pass-admin').value = '';
+            document.getElementById('pass-factura').value = '';
+            document.getElementById('auth-box-admin').style.display = 'none';
+            document.getElementById('auth-box-factura').style.display = 'none';
+            document.getElementById('login-error').textContent = '';
         }
 
         function habilitarNuevoCliente() {
@@ -751,7 +816,6 @@
             clienteInput.value = '';
         }
 
-        // Gestión de la secuencia ordenada de camiones
         function agregarCamionSecuencia() {
             const val = selectNuevoCamion.value;
             if (!val) return;
@@ -794,289 +858,283 @@
         }
 
         function agregarFilaAditivo(texto = '') {
-              const div = document.createElement('div');
-              div.className = 'aditivo-row';
-              div.innerHTML = `
-                    <input type="text" class="aditivo-input" placeholder="Ej: Macrofibra 2kg/m3" value="${texto}">
-                    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">X</button>
-              `;
-              aditivosContainer.appendChild(div);
+            const div = document.createElement('div');
+            div.className = 'aditivo-row';
+            div.innerHTML = `
+                <input type="text" class="aditivo-input" placeholder="Ej: Macrofibra 2kg/m3" value="${texto}">
+                <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">X</button>
+            `;
+            aditivosContainer.appendChild(div);
         }
 
         orderForm.addEventListener('submit', function(e) {
-              e.preventDefault();
-              if (currentUserRole !== 'admin') return;
+            e.preventDefault();
+            if (currentUserRole !== 'admin') return;
 
-              const idEditing = editIdInput.value;
-              
-              let clienteFinal = "";
-              if (clientContainerInput.style.display === 'flex') {
-                  clienteFinal = clienteInput.value.trim();
-              } else {
-                  clienteFinal = clienteSelect.value;
-              }
+            const idEditing = editIdInput.value;
+            let clienteFinal = clientContainerInput.style.display === 'flex' ? clienteInput.value.trim() : clienteSelect.value;
 
-              if (!clienteFinal) {
-                  alert("Por favor, seleccioná o ingresá un cliente.");
-                  return;
-              }
+            if (!clienteFinal) {
+                alert("Por favor, seleccioná o ingresá un cliente.");
+                return;
+            }
 
-              const cantidadValor = document.getElementById('cantidad').value.trim();
-              const facturadoValor = esFacturadoCheckbox.checked;
+            const aditivosInputs = document.querySelectorAll('.aditivo-input');
+            let aditivosList = [];
+            aditivosInputs.forEach(input => {
+                if (input.value.trim() !== '') aditivosList.push(input.value.trim());
+            });
 
-              const aditivosInputs = document.querySelectorAll('.aditivo-input');
-              let aditivosList = [];
-              aditivosInputs.forEach(input => {
-                    if (input.value.trim() !== '') {
-                          aditivosList.push(input.value.trim());
-                    }
-              });
+            const orderData = {
+                fecha: document.getElementById('fecha').value,
+                hora: document.getElementById('hora').value,
+                cliente: clienteFinal,
+                facturado: esFacturadoCheckbox.checked,
+                camiones: [...camionesSecuenciaActual],
+                tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
+                precioUnitario: parseFloat(document.getElementById('precioUnitario').value) || 0,
+                aditivos: aditivosList,
+                ubicacion: document.getElementById('ubicacion').value.trim(),
+                cantidad: document.getElementById('cantidad').value.trim(),
+                observaciones: document.getElementById('observaciones').value.trim()
+            };
 
-              const orderData = {
-                    fecha: document.getElementById('fecha').value,
-                    hora: document.getElementById('hora').value,
-                    cliente: clienteFinal,
-                    facturado: facturadoValor,
-                    camiones: [...camionesSecuenciaActual], // Guarda el array ordenado
-                    tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
-                    aditivos: aditivosList,
-                    ubicacion: document.getElementById('ubicacion').value.trim(),
-                    cantidad: cantidadValor,
-                    observaciones: document.getElementById('observaciones').value.trim()
-              };
-
-              if (idEditing) {
-                    db.collection("pedidos_hormigon").doc(idEditing).update(orderData).then(() => resetForm());
-              } else {
-                    orderData.id = Date.now();
-                    db.collection("pedidos_hormigon").add(orderData).then(() => {
-                        cancelarNuevoCliente();
-                        esFacturadoCheckbox.checked = false;
-                        camionesSecuenciaActual = [];
-                        renderizarSecuenciaUI();
-                        document.getElementById('tipoHormigon').value = '';
-                        document.getElementById('cantidad').value = '';
-                        document.getElementById('observaciones').value = '';
-                        aditivosContainer.innerHTML = '';
-                        clienteSelect.focus();
-                    });
-              }
+            if (idEditing) {
+                db.collection("pedidos_hormigon").doc(idEditing).update(orderData).then(() => resetForm());
+            } else {
+                orderData.id = Date.now();
+                db.collection("pedidos_hormigon").add(orderData).then(() => {
+                    cancelarNuevoCliente();
+                    esFacturadoCheckbox.checked = false;
+                    camionesSecuenciaActual = [];
+                    renderizarSecuenciaUI();
+                    document.getElementById('tipoHormigon').value = '';
+                    document.getElementById('precioUnitario').value = '';
+                    document.getElementById('cantidad').value = '';
+                    document.getElementById('observaciones').value = '';
+                    aditivosContainer.innerHTML = '';
+                    clienteSelect.focus();
+                });
+            }
         });
 
         function editOrder(firebaseId) {
-              const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
-              if (!orderToEdit) return;
+            const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
+            if (!orderToEdit) return;
 
-              if (currentUserRole === 'plantista') {
-                  let nuevoVolumen = prompt("Modificar Volumen / m³ del pedido:", orderToEdit.cantidad);
-                  if (nuevoVolumen !== null && nuevoVolumen.trim() !== "") {
-                      db.collection("pedidos_hormigon").doc(firebaseId).update({ cantidad: nuevoVolumen.trim() });
-                  }
-                  return;
-              }
+            if (currentUserRole === 'plantista') {
+                let nuevoVolumen = prompt("Modificar Volumen / m³ del pedido:", orderToEdit.cantidad);
+                if (nuevoVolumen !== null && nuevoVolumen.trim() !== "") {
+                    db.collection("pedidos_hormigon").doc(firebaseId).update({ cantidad: nuevoVolumen.trim() });
+                }
+                return;
+            }
 
-              editIdInput.value = orderToEdit.firebaseId;
-              document.getElementById('fecha').value = orderToEdit.fecha;
-              document.getElementById('hora').value = orderToEdit.hora;
-              
-              cancelarNuevoCliente();
-              clienteSelect.value = orderToEdit.cliente;
-              esFacturadoCheckbox.checked = !!orderToEdit.facturado;
+            if (currentUserRole === 'factura') {
+                let nuevoPrecio = prompt(`Modificar Precio Unitario para ${orderToEdit.cliente} (${orderToEdit.tipoHormigon}):`, orderToEdit.precioUnitario || 0);
+                if (nuevoPrecio !== null && !isNaN(nuevoPrecio)) {
+                    db.collection("pedidos_hormigon").doc(firebaseId).update({ precioUnitario: parseFloat(nuevoPrecio) });
+                }
+                return;
+            }
 
-              // Cargar secuencia de camiones guardada
-              camionesSecuenciaActual = orderToEdit.camiones ? [...orderToEdit.camiones] : [];
-              renderizarSecuenciaUI();
+            editIdInput.value = orderToEdit.firebaseId;
+            document.getElementById('fecha').value = orderToEdit.fecha;
+            document.getElementById('hora').value = orderToEdit.hora;
+            
+            cancelarNuevoCliente();
+            clienteSelect.value = orderToEdit.cliente;
+            esFacturadoCheckbox.checked = !!orderToEdit.facturado;
 
-              document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
-              document.getElementById('ubicacion').value = orderToEdit.ubicacion;
-              document.getElementById('cantidad').value = orderToEdit.cantidad;
-              document.getElementById('observaciones').value = orderToEdit.observaciones;
+            camionesSecuenciaActual = orderToEdit.camiones ? [...orderToEdit.camiones] : [];
+            renderizarSecuenciaUI();
 
-              aditivosContainer.innerHTML = '';
-              if (orderToEdit.aditivos && orderToEdit.aditivos.length > 0) {
-                    orderToEdit.aditivos.forEach(item => agregarFilaAditivo(item));
-              }
+            document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
+            document.getElementById('precioUnitario').value = orderToEdit.precioUnitario || '';
+            document.getElementById('ubicacion').value = orderToEdit.ubicacion;
+            document.getElementById('cantidad').value = orderToEdit.cantidad;
+            document.getElementById('observaciones').value = orderToEdit.observaciones;
 
-              formTitle.textContent = "Editar Turno / Pedido";
-              btnSubmit.textContent = "Actualizar Pedido";
-              btnCancel.style.display = "block";
-              
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+            aditivosContainer.innerHTML = '';
+            if (orderToEdit.aditivos) {
+                orderToEdit.aditivos.forEach(item => agregarFilaAditivo(item));
+            }
+
+            formTitle.textContent = "Editar Turno / Pedido";
+            btnSubmit.textContent = "Actualizar Pedido";
+            btnCancel.style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetForm() {
-              editIdInput.value = '';
-              orderForm.reset();
-              document.getElementById('fecha').value = filterDateInput.value;
-              cancelarNuevoCliente();
-              esFacturadoCheckbox.checked = false;
-              camionesSecuenciaActual = [];
-              renderizarSecuenciaUI();
-              aditivosContainer.innerHTML = '';
-              formTitle.textContent = "Cargar Nuevo Turno / Pedido";
-              btnSubmit.textContent = "Guardar Pedido";
-              btnCancel.style.display = "none";
+            editIdInput.value = '';
+            orderForm.reset();
+            document.getElementById('fecha').value = filterDateInput.value;
+            cancelarNuevoCliente();
+            esFacturadoCheckbox.checked = false;
+            camionesSecuenciaActual = [];
+            renderizarSecuenciaUI();
+            aditivosContainer.innerHTML = '';
+            formTitle.textContent = "Cargar Nuevo Turno / Pedido";
+            btnSubmit.textContent = "Guardar Pedido";
+            btnCancel.style.display = "none";
         }
 
         function deleteOrder(firebaseId) {
-              if (currentUserRole !== 'admin') return;
-              if (confirm('¿Estás seguro de que deseas eliminar este pedido?')) {
-                    db.collection("pedidos_hormigon").doc(firebaseId).delete().then(() => {
-                        if (editIdInput.value == firebaseId) resetForm();
-                    });
-              }
+            if (currentUserRole !== 'admin') return;
+            if (confirm('¿Estás seguro de que deseas eliminar este pedido?')) {
+                db.collection("pedidos_hormigon").doc(firebaseId).delete();
+            }
         }
 
         function actualizarListasClientes() {
-              if (currentUserRole !== 'admin') return;
-              const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
-              
-              const clienteSeleccionadoForm = clienteSelect.value;
-              clienteSelect.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
-              clientesSet.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c;
-                    opt.textContent = c;
-                    if (c === clienteSeleccionadoForm) opt.selected = true;
-                    clienteSelect.appendChild(opt);
-              });
+            if (currentUserRole !== 'admin') return;
+            const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
+            
+            clienteSelect.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
+            clientesSet.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                clienteSelect.appendChild(opt);
+            });
 
-              const clienteSeleccionadoHistorial = selectClientHistory.value;
-              selectClientHistory.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
-              clientesSet.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c;
-                    opt.textContent = c;
-                    if (c === clienteSeleccionadoHistorial) opt.selected = true;
-                    selectClientHistory.appendChild(opt);
-              });
+            selectClientHistory.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
+            clientesSet.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                selectClientHistory.appendChild(opt);
+            });
         }
 
         function verHistorialCliente() {
-              const clienteBuscado = selectClientHistory.value;
-              if (!clienteBuscado) {
-                    clientHistoryResults.innerHTML = '';
-                    return;
-              }
+            const clienteBuscado = selectClientHistory.value;
+            if (!clienteBuscado) {
+                clientHistoryResults.innerHTML = '';
+                return;
+            }
 
-              const pedidosCliente = orders
-                    .filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase())
-                    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+            const pedidosCliente = orders
+                .filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase())
+                .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-              if (pedidosCliente.length === 0) {
-                    clientHistoryResults.innerHTML = `<em>No hay registros para este cliente.</em>`;
-                    return;
-              }
+            if (pedidosCliente.length === 0) {
+                clientHistoryResults.innerHTML = `<em>No hay registros para este cliente.</em>`;
+                return;
+            }
 
-              let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-              html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Orden Mixers</th><th>Obra</th><th>Factura</th><th>H° / Aditivos</th><th>Volumen</th></tr></thead><tbody>`;
-              
-              pedidosCliente.forEach(p => {
-                    let facturaBadge = p.facturado ? `<span style="color:#27ae60; font-weight:bold;">Sí</span>` : `<span style="color:#7f8c8d;">No</span>`;
-                    let camionesTexto = p.camiones && p.camiones.length > 0 ? `<strong>${p.camiones.join(' ➔ ')}</strong>` : `<span style="color:#95a5a6;">-</span>`;
-                    let aditivosTexto = p.aditivos && p.aditivos.length > 0 ? `<br><span style="color:#2980b9; font-size:11px;">+ ${p.aditivos.join(', ')}</span>` : '';
-                    html += `<tr>
-                          <td>${p.fecha}</td>
-                          <td>${p.hora}</td>
-                          <td>${camionesTexto}</td>
-                          <td>${p.ubicacion}</td>
-                          <td>${facturaBadge}</td>
-                          <td><strong>${p.tipoHormigon}</strong>${aditivosTexto}</td>
-                          <td><strong>${p.cantidad}</strong></td>
-                    </tr>`;
-              });
-              html += `</tbody></table></div>`;
-              clientHistoryResults.innerHTML = html;
+            let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H°</th><th>Volumen</th><th>Precio U.</th><th>Total</th></tr></thead><tbody>`;
+            
+            pedidosCliente.forEach(p => {
+                let vol = parseFloat(p.cantidad) || 0;
+                let precioU = p.precioUnitario || 0;
+                let totalItem = vol * precioU;
+                html += `<tr>
+                    <td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td>
+                    <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td>
+                    <td>$${precioU.toLocaleString()}</td><td><strong>$${totalItem.toLocaleString()}</strong></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div>`;
+            clientHistoryResults.innerHTML = html;
         }
 
         function render() {
-              const selectedDate = filterDateInput.value;
-              printDateTitle.textContent = selectedDate;
-              ordersList.innerHTML = '';
+            let selectedDate = filterDateInput.value;
 
-              const filteredOrders = orders
-                    .filter(order => order.fecha === selectedDate)
-                    .sort((a, b) => a.hora.localeCompare(b.hora));
+            // Restricción extra de seguridad para rol facturación: Evitar ver el día actual o futuro por URL/manipulación
+            if (currentUserRole === 'factura' && selectedDate >= todayStr) {
+                let ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                selectedDate = ayer.toISOString().split('T')[0];
+                filterDateInput.value = selectedDate;
+            }
 
-              let dailySum = 0;
+            printDateTitle.textContent = selectedDate;
+            ordersList.innerHTML = '';
 
-              if (filteredOrders.length === 0) {
-                    ordersList.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #7f8c8d;">No hay pedidos cargados para esta fecha.</td></tr>`;
-              } else {
-                    filteredOrders.forEach(order => {
-                          let numVal = parseFloat(order.cantidad);
-                          if (!isNaN(numVal)) {
-                                dailySum += numVal;
-                          }
+            const filteredOrders = orders
+                .filter(order => order.fecha === selectedDate)
+                .sort((a, b) => a.hora.localeCompare(b.hora));
 
-                          let facturaBadge = order.facturado 
-                              ? `<span style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 3px;">FACTURADO</span>` 
-                              : `<span style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 3px;">SIN FACTURA</span>`;
+            let dailySum = 0;
+            let dailyMoneySum = 0;
 
-                          let camionesBadges = `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
-                          if (order.camiones && order.camiones.length > 0) {
-                              camionesBadges = order.camiones.map((c, idx) => `<span style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ');
-                          }
+            if (filteredOrders.length === 0) {
+                ordersList.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #7f8c8d;">No hay pedidos cargados para esta fecha.</td></tr>`;
+            } else {
+                filteredOrders.forEach(order => {
+                    let numVal = parseFloat(order.cantidad);
+                    if (!isNaN(numVal)) dailySum += numVal;
 
-                          let aditivosHtml = '';
-                          if (order.aditivos && order.aditivos.length > 0) {
-                                aditivosHtml = `<br><span style="color: #2980b9; font-size: 11px;">+ ${order.aditivos.join('<br>+ ')}</span>`;
-                          }
+                    let precioU = order.precioUnitario || 0;
+                    let totalItem = (!isNaN(numVal) ? numVal : 0) * precioU;
+                    dailyMoneySum += totalItem;
 
-                          let accionesHtml = '';
-                          if (currentUserRole === 'admin') {
-                              accionesHtml = `
-                                  <div class="action-buttons">
-                                        <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
-                                        <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
-                                  </div>
-                              `;
-                          } else {
-                              accionesHtml = `
-                                  <button class="btn-edit" onclick="editOrder('${order.firebaseId}')" title="Ajustar volumen">Editar Vol.</button>
-                              `;
-                          }
+                    let facturaBadge = order.facturado 
+                        ? `<span class="print-badge-factura" style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">FACTURADO</span>` 
+                        : `<span class="print-badge-factura" style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">SIN FACTURA</span>`;
 
-                          const row = document.createElement('tr');
-                          row.innerHTML = `
-                                <td><strong>${order.hora}</strong></td>
-                                <td style="text-align: center;">${camionesBadges}</td>
-                                <td>${order.cliente}<br>${facturaBadge}</td>
-                                <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
-                                <td>${order.ubicacion}</td>
-                                <td><strong>${order.cantidad}</strong></td>
-                                <td style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</td>
-                                <td class="col-acciones">${accionesHtml}</td>
-                          `;
-                          ordersList.appendChild(row);
-                    });
-              }
+                    let camionesBadges = `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
+                    if (order.camiones && order.camiones.length > 0) {
+                        camionesBadges = order.camiones.map((c, idx) => `<span class="print-badge-camion" style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ');
+                    }
 
-              dailyTotalEl.textContent = dailySum.toFixed(2);
+                    let aditivosHtml = order.aditivos && order.aditivos.length > 0 ? `<br><span style="color: #2980b9; font-size: 11px;">+ ${order.aditivos.join('<br>+ ')}</span>` : '';
+                    let observacionesHtml = `<span class="print-obs" style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</span>`;
 
-              if (currentUserRole === 'admin') {
-                  const currentMonth = selectedDate.substring(0, 7);
-                  let monthlySum = 0;
-                  let monthlyCount = 0;
+                    let accionesHtml = '';
+                    if (currentUserRole === 'admin') {
+                        accionesHtml = `
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
+                                <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
+                            </div>
+                        `;
+                    } else if (currentUserRole === 'factura') {
+                        accionesHtml = `<button class="btn-edit" onclick="editOrder('${order.firebaseId}')" style="background-color: #27ae60;">Asignar Precio</button>`;
+                    } else {
+                        accionesHtml = `<button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar Vol.</button>`;
+                    }
 
-                  orders.forEach(order => {
-                        let numVal = parseFloat(order.cantidad);
-                        if (!isNaN(numVal) && order.fecha.startsWith(currentMonth)) {
-                              monthlySum += numVal;
-                        }
-                        if (order.fecha.startsWith(currentMonth)) {
-                              monthlyCount++;
-                        }
-                  });
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${order.hora}</strong></td>
+                        <td style="text-align: center;">${camionesBadges}</td>
+                        <td>${order.cliente}<br>${facturaBadge}</td>
+                        <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
+                        <td>${order.ubicacion}</td>
+                        <td><strong>${order.cantidad}</strong></td>
+                        <td class="factura-only">$${precioU.toLocaleString()}</td>
+                        <td class="factura-only" style="font-weight: bold; color: #27ae60;">$${totalItem.toLocaleString()}</td>
+                        <td>${observacionesHtml}</td>
+                        <td class="col-acciones">${accionesHtml}</td>
+                    `;
+                    ordersList.appendChild(row);
+                });
+            }
 
-                  monthlyTotalEl.textContent = monthlySum.toFixed(2);
-                  monthlyCountEl.textContent = monthlyCount;
+            dailyTotalEl.textContent = dailySum.toFixed(2);
+            dailyMoneyTotalEl.textContent = dailyMoneySum.toLocaleString();
 
-                  actualizarListasClientes();
-                  if(selectClientHistory.value) {
-                        verHistorialCliente();
-                  }
-              }
+            if (currentUserRole === 'admin') {
+                const currentMonth = selectedDate.substring(0, 7);
+                let monthlySum = 0;
+                let monthlyCount = 0;
+
+                orders.forEach(order => {
+                    let numVal = parseFloat(order.cantidad);
+                    if (!isNaN(numVal) && order.fecha.startsWith(currentMonth)) monthlySum += numVal;
+                    if (order.fecha.startsWith(currentMonth)) monthlyCount++;
+                });
+
+                monthlyTotalEl.textContent = monthlySum.toFixed(2);
+                monthlyCountEl.textContent = monthlyCount;
+                actualizarListasClientes();
+                if (selectClientHistory.value) verHistorialCliente();
+            }
         }
 
         filterDateInput.addEventListener('change', render);
