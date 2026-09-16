@@ -610,9 +610,19 @@
                             <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B) o H13 1/3" required>
                       </div>
 
+                      <!-- Condición de Pago / Comercial -->
+                      <div class="form-group">
+                            <label for="condicionPago">Condición de Pago / Comercial</label>
+                            <select id="condicionPago">
+                                <option value="normal">Cobro Normal / Cuenta Corriente</option>
+                                <option value="compensacion">Compensación / Trueque (No suma a cobrar)</option>
+                                <option value="acopio">Pagado en Acopio / Anticipado (No suma a cobrar)</option>
+                            </select>
+                      </div>
+
                       <!-- Costo / Precio Unitario (Solo Admin) -->
                       <div class="form-group">
-                            <label for="precioUnitario">Precio / Costo Unitario por m³ ($)</label>
+                            <label for="precioUnitario">Precio Referencia por m³ ($)</label>
                             <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
                       </div>
 
@@ -668,7 +678,7 @@
                                     <th>H° e Ítems Extra</th>
                                     <th>Ubicación</th>
                                     <th>Volumen</th>
-                                    <th class="factura-only">Precio Unit. ($)</th>
+                                    <th class="factura-only">Condición / Pago</th>
                                     <th class="factura-only">Total ($)</th>
                                     <th>Observaciones</th>
                                     <th class="col-acciones">Acciones</th>
@@ -681,7 +691,7 @@
                   </div>
                   <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold;">
                       <div class="factura-only" id="total-dinero-container" style="color: #27ae60;">
-                          Total Facturación Día: $<span id="daily-money-total">0.00</span>
+                          Total Facturación a Cobrar Día: $<span id="daily-money-total">0.00</span>
                       </div>
                       <div style="margin-left: auto;">
                           Total Volumen Día: <span id="daily-total">0.00</span> m³
@@ -705,7 +715,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 🔐 CONTRASEÑAS DE ACCESO:
         const PASSWORDS = {
             admin: "admin123",
             factura: "factura123"
@@ -736,6 +745,7 @@
         const clientContainerSelect = document.getElementById('client-container-select');
         const clientContainerInput = document.getElementById('client-container-input');
         const esFacturadoCheckbox = document.getElementById('es-facturado');
+        const condicionPagoSelect = document.getElementById('condicionPago');
         
         const selectNuevoCamion = document.getElementById('select-nuevo-camion');
         const secuenciaListaContainer = document.getElementById('secuencia-lista-container');
@@ -780,11 +790,10 @@
             } else if (currentUserRole === 'factura') {
                 userDisplayRole.textContent = "Perfil: Facturación";
                 appBody.classList.add('factura-mode');
-                // Forzar fecha a ayer o anterior por regla de negocio
                 let ayer = new Date();
                 ayer.setDate(ayer.getDate() - 1);
                 filterDateInput.value = ayer.toISOString().split('T')[0];
-                filterDateInput.max = ayer.toISOString().split('T')[0]; // No permite ver hoy ni futuro
+                filterDateInput.max = ayer.toISOString().split('T')[0];
             } else {
                 userDisplayRole.textContent = "Perfil: Administración";
             }
@@ -893,6 +902,7 @@
                 facturado: esFacturadoCheckbox.checked,
                 camiones: [...camionesSecuenciaActual],
                 tipoHormigon: document.getElementById('tipoHormigon').value.trim(),
+                condicionPago: condicionPagoSelect.value,
                 precioUnitario: parseFloat(document.getElementById('precioUnitario').value) || 0,
                 aditivos: aditivosList,
                 ubicacion: document.getElementById('ubicacion').value.trim(),
@@ -911,6 +921,7 @@
                     renderizarSecuenciaUI();
                     document.getElementById('tipoHormigon').value = '';
                     document.getElementById('precioUnitario').value = '';
+                    condicionPagoSelect.value = 'normal';
                     document.getElementById('cantidad').value = '';
                     document.getElementById('observaciones').value = '';
                     aditivosContainer.innerHTML = '';
@@ -932,7 +943,7 @@
             }
 
             if (currentUserRole === 'factura') {
-                let nuevoPrecio = prompt(`Modificar Precio Unitario para ${orderToEdit.cliente} (${orderToEdit.tipoHormigon}):`, orderToEdit.precioUnitario || 0);
+                let nuevoPrecio = prompt(`Precio Unitario para ${orderToEdit.cliente} (${orderToEdit.tipoHormigon}):`, orderToEdit.precioUnitario || 0);
                 if (nuevoPrecio !== null && !isNaN(nuevoPrecio)) {
                     db.collection("pedidos_hormigon").doc(firebaseId).update({ precioUnitario: parseFloat(nuevoPrecio) });
                 }
@@ -951,6 +962,7 @@
             renderizarSecuenciaUI();
 
             document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
+            condicionPagoSelect.value = orderToEdit.condicionPago || 'normal';
             document.getElementById('precioUnitario').value = orderToEdit.precioUnitario || '';
             document.getElementById('ubicacion').value = orderToEdit.ubicacion;
             document.getElementById('cantidad').value = orderToEdit.cantidad;
@@ -973,6 +985,7 @@
             document.getElementById('fecha').value = filterDateInput.value;
             cancelarNuevoCliente();
             esFacturadoCheckbox.checked = false;
+            condicionPagoSelect.value = 'normal';
             camionesSecuenciaActual = [];
             renderizarSecuenciaUI();
             aditivosContainer.innerHTML = '';
@@ -1026,15 +1039,18 @@
             }
 
             let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H°</th><th>Volumen</th><th>Precio U.</th><th>Total</th></tr></thead><tbody>`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H°</th><th>Volumen</th><th>Condición</th><th>Precio U.</th><th>Total</th></tr></thead><tbody>`;
             
             pedidosCliente.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
                 let precioU = p.precioUnitario || 0;
-                let totalItem = vol * precioU;
+                let cond = p.condicionPago || 'normal';
+                let totalItem = (cond === 'normal') ? (vol * precioU) : 0;
+                let condTexto = cond === 'compensacion' ? 'Trueque/Compensación' : (cond === 'acopio' ? 'Pagado en Acopio' : 'Cta. Cte.');
+
                 html += `<tr>
                     <td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td>
-                    <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td>
+                    <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td>
                     <td>$${precioU.toLocaleString()}</td><td><strong>$${totalItem.toLocaleString()}</strong></td>
                 </tr>`;
             });
@@ -1045,7 +1061,6 @@
         function render() {
             let selectedDate = filterDateInput.value;
 
-            // Restricción extra de seguridad para rol facturación: Evitar ver el día actual o futuro por URL/manipulación
             if (currentUserRole === 'factura' && selectedDate >= todayStr) {
                 let ayer = new Date();
                 ayer.setDate(ayer.getDate() - 1);
@@ -1071,12 +1086,25 @@
                     if (!isNaN(numVal)) dailySum += numVal;
 
                     let precioU = order.precioUnitario || 0;
-                    let totalItem = (!isNaN(numVal) ? numVal : 0) * precioU;
-                    dailyMoneySum += totalItem;
+                    let condicion = order.condicionPago || 'normal';
+                    
+                    // Si es compensación o acopio, no suma al total de dinero a cobrar del día
+                    let totalItem = 0;
+                    if (condicion === 'normal') {
+                        totalItem = (!isNaN(numVal) ? numVal : 0) * precioU;
+                        dailyMoneySum += totalItem;
+                    }
 
                     let facturaBadge = order.facturado 
                         ? `<span class="print-badge-factura" style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">FACTURADO</span>` 
                         : `<span class="print-badge-factura" style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">SIN FACTURA</span>`;
+
+                    let condicionBadge = '';
+                    if (condicion === 'compensacion') {
+                        condicionBadge = `<br><span style="background: #e67e22; color: white; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; display: inline-block; margin-top:2px;">COMPENSACIÓN / TRUEQUE</span>`;
+                    } else if (condicion === 'acopio') {
+                        condicionBadge = `<br><span style="background: #8e44ad; color: white; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; display: inline-block; margin-top:2px;">PAGADO EN ACOPIO</span>`;
+                    }
 
                     let camionesBadges = `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
                     if (order.camiones && order.camiones.length > 0) {
@@ -1108,8 +1136,10 @@
                         <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
                         <td>${order.ubicacion}</td>
                         <td><strong>${order.cantidad}</strong></td>
-                        <td class="factura-only">$${precioU.toLocaleString()}</td>
-                        <td class="factura-only" style="font-weight: bold; color: #27ae60;">$${totalItem.toLocaleString()}</td>
+                        <td class="factura-only">$${precioU.toLocaleString()} ${condicionBadge}</td>
+                        <td class="factura-only" style="font-weight: bold; color: ${condicion === 'normal' ? '#27ae60' : '#7f8c8d'};">
+                            ${condicion === 'normal' ? '$' + totalItem.toLocaleString() : 'N/A (Compensado)'}
+                        </td>
                         <td>${observacionesHtml}</td>
                         <td class="col-acciones">${accionesHtml}</td>
                     `;
