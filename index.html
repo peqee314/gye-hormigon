@@ -87,7 +87,6 @@
         }
         .btn-logout:hover { background-color: #c0392b; }
 
-        /* Pantalla de Selección de Perfil / Login */
         #login-screen {
             max-width: 420px;
             margin: 60px auto;
@@ -154,7 +153,6 @@
             gap: 20px;
         }
 
-        /* Control de visibilidad según roles */
         body.operator-mode .admin-only, 
         body.operator-mode .factura-only,
         body.factura-mode .admin-only,
@@ -303,27 +301,40 @@
         .aditivos-container {
             background: #f8f9fa;
             border: 1px dashed var(--border-color);
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .aditivo-headers {
+            display: flex;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 6px;
+            padding-right: 35px;
         }
 
         .aditivo-row {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 8px;
             align-items: center;
         }
 
-        /* Estilos específicos para asegurar que los inputs de aditivos tengan tamaño visible y correcto */
         .aditivo-row input {
-            padding: 8px;
+            padding: 9px;
             font-size: 13px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             box-sizing: border-box;
             background: white;
         }
+
+        .aditivo-nombre { flex: 2.5; }
+        .aditivo-cantidad { flex: 1; }
+        .aditivo-precio { flex: 1.5; }
 
         .btn-add-item {
             background-color: #27ae60;
@@ -338,7 +349,7 @@
             background-color: var(--gye-red);
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 9px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
@@ -642,10 +653,16 @@
                             </select>
                       </div>
 
-                      <!-- Subproductos y Servicios Adicionales con Cantidad y Precio -->
+                      <!-- Subproductos y Servicios Adicionales con Cabeceras y Anchura Correcta -->
                       <div class="form-group">
                             <label>Subproductos, Aditivos o Servicios Extra (Bombeo, etc.)</label>
-                            <div class="aditivos-container" id="aditivos-container"></div>
+                            <div class="aditivos-container" id="aditivos-container">
+                                <div class="aditivo-headers" id="aditivo-headers" style="display: none;">
+                                    <span style="flex: 2.5;">Descripción</span>
+                                    <span style="flex: 1;">Cant.</span>
+                                    <span style="flex: 1.5;">Precio Unit. ($)</span>
+                                </div>
+                            </div>
                             <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Subproducto / Servicio</button>
                       </div>
 
@@ -750,6 +767,7 @@
         const dailyTotalEl = document.getElementById('daily-total');
         const dailyMoneyTotalEl = document.getElementById('daily-money-total');
         const aditivosContainer = document.getElementById('aditivos-container');
+        const aditivoHeaders = document.getElementById('aditivo-headers');
         const selectClientHistory = document.getElementById('select-client-history');
         const clientHistoryResults = document.getElementById('client-history-results');
         
@@ -880,16 +898,26 @@
             });
         }
 
+        function actualizarVisibilidadHeaders() {
+            const filas = aditivosContainer.querySelectorAll('.aditivo-row');
+            if (filas.length > 0) {
+                aditivoHeaders.style.display = 'flex';
+            } else {
+                aditivoHeaders.style.display = 'none';
+            }
+        }
+
         function agregarFilaAditivo(nombre = '', cantidad = '', precio = '') {
             const div = document.createElement('div');
             div.className = 'aditivo-row';
             div.innerHTML = `
-                <input type="text" class="aditivo-nombre" placeholder="Descripción (Ej: Bombeo / Macrofibra)" value="${nombre}" style="flex: 2.2;">
-                <input type="number" step="0.01" class="aditivo-cantidad" placeholder="Cant." value="${cantidad}" style="flex: 1;">
-                <input type="number" step="0.01" class="aditivo-precio" placeholder="Precio U. ($)" value="${precio}" style="flex: 1.5;">
-                <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">X</button>
+                <input type="text" class="aditivo-nombre" placeholder="Ej: Bombeo / Macrofibra" value="${nombre}">
+                <input type="number" step="0.01" class="aditivo-cantidad" placeholder="Ej: 1" value="${cantidad}">
+                <input type="number" step="0.01" class="aditivo-precio" placeholder="Ej: 45000" value="${precio}">
+                <button type="button" class="btn-remove-item" onclick="this.parentElement.remove(); actualizarVisibilidadHeaders();">X</button>
             `;
             aditivosContainer.appendChild(div);
+            actualizarVisibilidadHeaders();
         }
 
         orderForm.addEventListener('submit', function(e) {
@@ -944,7 +972,8 @@
                     condicionPagoSelect.value = 'normal';
                     document.getElementById('cantidad').value = '';
                     document.getElementById('observaciones').value = '';
-                    aditivosContainer.innerHTML = '';
+                    aditivosContainer.querySelectorAll('.aditivo-row').forEach(el => el.remove());
+                    actualizarVisibilidadHeaders();
                     clienteSelect.focus();
                 });
             }
@@ -988,7 +1017,7 @@
             document.getElementById('cantidad').value = orderToEdit.cantidad;
             document.getElementById('observaciones').value = orderToEdit.observaciones;
 
-            aditivosContainer.innerHTML = '';
+            aditivosContainer.querySelectorAll('.aditivo-row').forEach(el => el.remove());
             if (orderToEdit.aditivos && Array.isArray(orderToEdit.aditivos)) {
                 orderToEdit.aditivos.forEach(item => {
                     if (typeof item === 'string') {
@@ -998,6 +1027,7 @@
                     }
                 });
             }
+            actualizarVisibilidadHeaders();
 
             formTitle.textContent = "Editar Turno / Pedido";
             btnSubmit.textContent = "Actualizar Pedido";
@@ -1014,7 +1044,8 @@
             condicionPagoSelect.value = 'normal';
             camionesSecuenciaActual = [];
             renderizarSecuenciaUI();
-            aditivosContainer.innerHTML = '';
+            aditivosContainer.querySelectorAll('.aditivo-row').forEach(el => el.remove());
+            actualizarVisibilidadHeaders();
             formTitle.textContent = "Cargar Nuevo Turno / Pedido";
             btnSubmit.textContent = "Guardar Pedido";
             btnCancel.style.display = "none";
