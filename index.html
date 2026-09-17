@@ -979,25 +979,38 @@
             };
 
             if (idEditing) {
-                db.collection("pedidos_hormigon").doc(idEditing).update(orderData).then(() => resetForm());
+                db.collection("pedidos_hormigon").doc(idEditing).update(orderData)
+                    .then(() => {
+                        resetForm();
+                        alert("¡Pedido actualizado correctamente!");
+                    })
+                    .catch(error => {
+                        console.error("Error al actualizar: ", error);
+                        alert("Hubo un error al guardar los cambios en Firebase.");
+                    });
             } else {
                 orderData.id = Date.now();
-                db.collection("pedidos_hormigon").add(orderData).then(() => {
-                    cancelarNuevoCliente();
-                    esFacturadoCheckbox.checked = false;
-                    camionesSecuenciaActual = [];
-                    renderizarSecuenciaUI();
-                    document.getElementById('tipoHormigon').value = '';
-                    document.getElementById('precioUnitario').value = '';
-                    condicionPagoSelect.value = 'normal';
-                    document.getElementById('cantidad').value = '';
-                    document.getElementById('observaciones').value = '';
-                    aditivosContainer.innerHTML = '';
-                    clienteSelect.focus();
-                });
+                db.collection("pedidos_hormigon").add(orderData)
+                    .then(() => {
+                        cancelarNuevoCliente();
+                        esFacturadoCheckbox.checked = false;
+                        camionesSecuenciaActual = [];
+                        renderizarSecuenciaUI();
+                        document.getElementById('tipoHormigon').value = '';
+                        document.getElementById('precioUnitario').value = '';
+                        condicionPagoSelect.value = 'normal';
+                        document.getElementById('cantidad').value = '';
+                        document.getElementById('observaciones').value = '';
+                        aditivosContainer.innerHTML = '';
+                        clienteSelect.focus();
+                        alert("¡Pedido guardado correctamente!");
+                    })
+                    .catch(error => {
+                        console.error("Error al guardar: ", error);
+                        alert("Hubo un error al registrar el pedido en Firebase.");
+                    });
             }
         });
-
         function editOrder(firebaseId) {
             const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToEdit) return;
