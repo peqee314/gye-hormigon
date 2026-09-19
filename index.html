@@ -443,6 +443,14 @@
         }
         .btn-edit:hover { background-color: #d68910; }
 
+        .btn-duplicate {
+            background-color: #2980b9;
+            padding: 4px 8px;
+            font-size: 11px;
+            width: auto;
+        }
+        .btn-duplicate:hover { background-color: #1f618d; }
+
         .btn-delete {
             background-color: var(--gye-red);
             padding: 4px 8px;
@@ -1011,6 +1019,7 @@
                     });
             }
         });
+
         function editOrder(firebaseId) {
             const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToEdit) return;
@@ -1062,6 +1071,49 @@
 
             formTitle.textContent = "Editar Turno / Pedido";
             btnSubmit.textContent = "Actualizar Pedido";
+            btnCancel.style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function duplicateOrder(firebaseId) {
+            if (currentUserRole !== 'admin') return;
+            const orderToDuplicate = orders.find(order => order.firebaseId === firebaseId);
+            if (!orderToDuplicate) return;
+
+            // Limpiamos ID de edición para que actúe como un registro NUEVO
+            editIdInput.value = '';
+            
+            // Mantenemos la fecha actual o dejamos la del pedido para que la cambien fácilmente
+            document.getElementById('fecha').value = todayStr;
+            document.getElementById('hora').value = orderToDuplicate.hora;
+            
+            cancelarNuevoCliente();
+            clienteSelect.value = orderToDuplicate.cliente;
+            esFacturadoCheckbox.checked = !!orderToDuplicate.facturado;
+
+            camionesSecuenciaActual = orderToDuplicate.camiones ? [...orderToDuplicate.camiones] : [];
+            renderizarSecuenciaUI();
+
+            document.getElementById('tipoHormigon').value = orderToDuplicate.tipoHormigon;
+            condicionPagoSelect.value = orderToDuplicate.condicionPago || 'normal';
+            document.getElementById('precioUnitario').value = orderToDuplicate.precioUnitario || '';
+            document.getElementById('ubicacion').value = orderToDuplicate.ubicacion;
+            document.getElementById('cantidad').value = orderToDuplicate.cantidad;
+            document.getElementById('observaciones').value = orderToDuplicate.observaciones;
+
+            aditivosContainer.innerHTML = '';
+            if (orderToDuplicate.aditivos && Array.isArray(orderToDuplicate.aditivos)) {
+                orderToDuplicate.aditivos.forEach(item => {
+                    if (typeof item === 'string') {
+                        agregarFilaAditivo(item, 1, 0); 
+                    } else {
+                        agregarFilaAditivo(item.nombre, item.cantidad, item.precio);
+                    }
+                });
+            }
+
+            formTitle.textContent = "Duplicar Turno / Pedido";
+            btnSubmit.textContent = "Guardar como Nuevo Pedido";
             btnCancel.style.display = "block";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1231,6 +1283,7 @@
                         accionesHtml = `
                             <div class="action-buttons">
                                 <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
+                                <button class="btn-duplicate" onclick="duplicateOrder('${order.firebaseId}')">Duplicar</button>
                                 <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
                             </div>
                         `;
