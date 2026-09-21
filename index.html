@@ -190,7 +190,6 @@
             align-items: center;
         }
 
-        /* Formulario Interno en 2 Columnas */
         .form-grid-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -311,7 +310,6 @@
         }
         .btn-remove-secuencia:hover { background-color: #c0392b; }
 
-        /* Contenedor de Subproductos */
         .aditivos-container {
             display: flex;
             flex-direction: column;
@@ -609,75 +607,75 @@
                             <!-- Columna Izquierda del Formulario -->
                             <div>
                                 <div class="form-group">
-                                      <label for="fecha">Fecha</label>
-                                      <input type="date" id="fecha" required>
+                                     <label for="fecha">Fecha</label>
+                                     <input type="date" id="fecha" required>
                                 </div>
                                 <div class="form-group">
-                                      <label for="hora">Hora del Turno</label>
-                                      <input type="time" id="hora" required>
+                                     <label for="hora">Hora del Turno</label>
+                                     <input type="time" id="hora" required>
                                 </div>
                                 <div class="form-group">
-                                      <label for="cliente">Cliente</label>
-                                      <div class="client-input-row" id="client-container-select">
-                                          <select id="cliente-select" style="flex:1;">
-                                              <option value="">-- Seleccionar Cliente --</option>
-                                          </select>
-                                          <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
-                                      </div>
-                                      <div class="client-input-row" id="client-container-input" style="display: none;">
-                                          <input type="text" id="cliente-input" placeholder="Nombre nuevo..." style="flex:1;">
-                                          <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
-                                      </div>
-                                      
-                                      <div class="factura-checkbox-container">
-                                          <input type="checkbox" id="es-facturado">
-                                          <label for="es-facturado">Pedido con Factura</label>
-                                      </div>
+                                     <label for="cliente">Cliente</label>
+                                     <div class="client-input-row" id="client-container-select">
+                                         <select id="cliente-select" style="flex:1;">
+                                             <option value="">-- Seleccionar Cliente --</option>
+                                         </select>
+                                         <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
+                                     </div>
+                                     <div class="client-input-row" id="client-container-input" style="display: none;">
+                                         <input type="text" id="cliente-input" placeholder="Nombre nuevo..." style="flex:1;">
+                                         <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
+                                     </div>
+                                     
+                                     <div class="factura-checkbox-container">
+                                         <input type="checkbox" id="es-facturado">
+                                         <label for="es-facturado">Pedido con Factura</label>
+                                     </div>
                                 </div>
 
                                 <div class="form-group">
-                                      <label>Secuencia Salida Camiones</label>
-                                      <div class="secuencia-camiones-box">
-                                          <div class="secuencia-add-row">
-                                              <select id="select-nuevo-camion" style="flex:1;">
-                                                  <option value="">-- Unidad --</option>
-                                                  <optgroup label="Mixers">
-                                                      <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
-                                                  </optgroup>
-                                                  <optgroup label="Bombas">
-                                                      <option value="M1">M1 (Bomba)</option>
-                                                  </optgroup>
-                                              </select>
-                                              <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
-                                          </div>
-                                          <div class="secuencia-lista" id="secuencia-lista-container">
-                                              <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
-                                          </div>
-                                      </div>
+                                    <label>Secuencia Salida Camiones</label>
+                                    <div class="secuencia-camiones-box">
+                                        <div class="secuencia-add-row">
+                                            <select id="select-nuevo-camion" style="flex:1;">
+                                                <option value="">-- Unidad --</option>
+                                                <optgroup label="Mixers">
+                                                    <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
+                                                </optgroup>
+                                                <optgroup label="Bombas">
+                                                    <option value="M1">M1 (Bomba)</option>
+                                                </optgroup>
+                                            </select>
+                                            <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
+                                        </div>
+                                        <div class="secuencia-lista" id="secuencia-lista-container">
+                                            <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Columna Derecha del Formulario -->
                             <div>
                                 <div class="form-group">
-                                      <label for="tipoHormigon">Tipo de H° (Principal)</label>
-                                      <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B)" required>
+                                     <label for="tipoHormigon">Tipo de H° (Principal)</label>
+                                     <input type="text" id="tipoHormigon" placeholder="Ej: H30 (B)" required>
                                 </div>
                                 <div class="form-group">
-                                      <label for="cantidad">Volumen / m³</label>
-                                      <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
+                                     <label for="cantidad">Volumen / m³</label>
+                                     <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
                                 </div>
                                 <div class="form-group">
-                                      <label for="precioUnitario">Precio Referencia H° ($/m³)</label>
-                                      <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
+                                     <label for="precioUnitario">Precio Referencia H° ($/m³)</label>
+                                     <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
                                 </div>
                                 <div class="form-group">
-                                      <label for="condicionPago">Condición de Pago / Comercial</label>
-                                      <select id="condicionPago">
-                                          <option value="normal">Cobro Normal / Cta. Cte.</option>
-                                          <option value="compensacion">Compensación / Trueque</option>
-                                          <option value="acopio">Pagado en Acopio</option>
-                                      </select>
+                                     <label for="condicionPago">Condición de Pago / Comercial</label>
+                                     <select id="condicionPago">
+                                         <option value="normal">Cobro Normal / Cta. Cte.</option>
+                                         <option value="compensacion">Compensación / Trueque</option>
+                                         <option value="acopio">Pagado en Acopio</option>
+                                     </select>
                                 </div>
                             </div>
 
@@ -1080,10 +1078,8 @@
             const orderToDuplicate = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToDuplicate) return;
 
-            // Limpiamos ID de edición para que actúe como un registro NUEVO
             editIdInput.value = '';
             
-            // Mantenemos la fecha actual o dejamos la del pedido para que la cambien fácilmente
             document.getElementById('fecha').value = todayStr;
             document.getElementById('hora').value = orderToDuplicate.hora;
             
@@ -1177,7 +1173,12 @@
                 return;
             }
 
-            let html = `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
+            let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
+            html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong>`;
+            html += `<button type="button" class="btn-print no-print" onclick="imprimirHistorialCliente('${clienteBuscado}')" style="padding: 4px 10px; font-size: 12px; width: auto;">🖨️ Imprimir Historial</button>`;
+            html += `</div>`;
+
+            html += `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
             html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th></tr></thead><tbody>`;
             
             pedidosCliente.forEach(p => {
@@ -1207,6 +1208,48 @@
             html += `</tbody></table></div>`;
             clientHistoryResults.innerHTML = html;
         }
+
+        function imprimirHistorialCliente(clienteNombre) {
+    const contenidoTabla = clientHistoryResults.innerHTML;
+    const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+    
+    ventanaImpresion.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <title>Historial de ${clienteNombre}</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
+                /* Forzamos a que la caja contenedora muestre todo el contenido sin cortes ni barras */
+                div[style*="max-height"] {
+                    max-height: none !important;
+                    overflow: visible !important;
+                    border: none !important;
+                    padding: 0 !important;
+                    background: transparent !important;
+                }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+                table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
+                table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .no-print { display: none !important; }
+            </style>
+        </head>
+        <body>
+            <h2>Historial de Cliente: ${clienteNombre}</h2>
+            ${contenidoTabla}
+            <script>
+                window.onload = function() {
+                    window.print();
+                    window.close();
+                }
+            <\/script>
+        </body>
+        </html>
+    `);
+    ventanaImpresion.document.close();
+}
 
         function render() {
             let selectedDate = filterDateInput.value;
