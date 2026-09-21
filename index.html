@@ -101,13 +101,13 @@
         .login-options {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             margin-top: 20px;
         }
 
         .role-card {
             border: 2px solid var(--border-color);
-            padding: 15px;
+            padding: 12px 15px;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
@@ -154,6 +154,7 @@
             margin-bottom: 20px;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
@@ -188,10 +189,23 @@
             display: block;
         }
 
+        /* Restricciones por rol */
         body.operator-mode .admin-only, 
         body.operator-mode .factura-only,
+        body.operator-mode .porteria-only,
+        body.operator-mode .reportes-only,
         body.factura-mode .admin-only,
-        body.factura-mode .operator-form-only {
+        body.factura-mode .operator-form-only,
+        body.factura-mode .porteria-only,
+        body.factura-mode .reportes-only,
+        body.factura-mode .plantista-consumption-only,
+        body.porteria-mode .admin-only,
+        body.porteria-mode .factura-only,
+        body.porteria-mode .operator-form-only,
+        body.porteria-mode .non-porteria,
+        body.porteria-mode .reportes-only,
+        body.porteria-mode .plantista-consumption-only,
+        body.admin-mode .plantista-consumption-only {
             display: none !important;
         }
 
@@ -562,12 +576,21 @@
         <div class="login-options">
             <div class="role-card" onclick="ingresarComoPlantista()">
                 <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">🏭 Operador / Plantista</h3>
-                <p style="margin: 0; font-size: 12px; color: #666;">Acceso rápido al parte diario y ajuste de volúmenes.</p>
+                <p style="margin: 0; font-size: 12px; color: #666;">Parte diario, control de volúmenes y registro de consumos.</p>
+            </div>
+
+            <div class="role-card" onclick="mostrarAuth('porteria')">
+                <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">🚛 Portería / Báscula</h3>
+                <p style="margin: 0; font-size: 12px; color: #666;">Registro exclusivo de ingresos de materia prima.</p>
+                <div id="auth-box-porteria" class="auth-box">
+                    <input type="password" id="pass-porteria" placeholder="Contraseña Portería..." style="margin-bottom: 6px; font-size:12px;">
+                    <button type="button" onclick="verificarLogin('porteria')" style="padding: 6px; font-size: 12px;">Entrar</button>
+                </div>
             </div>
 
             <div class="role-card" onclick="mostrarAuth('admin')">
                 <h3 style="margin: 0 0 5px 0; color: var(--secondary-color);">👑 Administrador</h3>
-                <p style="margin: 0; font-size: 12px; color: #666;">Acceso total a gestión, carga, historial y métricas.</p>
+                <p style="margin: 0; font-size: 12px; color: #666;">Acceso total a gestión, stock, historial y métricas.</p>
                 <div id="auth-box-admin" class="auth-box">
                     <input type="password" id="pass-admin" placeholder="Contraseña Admin..." style="margin-bottom: 6px; font-size:12px;">
                     <button type="button" onclick="verificarLogin('admin')" style="padding: 6px; font-size: 12px;">Entrar</button>
@@ -609,14 +632,15 @@
         </div>
 
         <!-- BARRA DE PESTAÑAS (NAVEGACIÓN PRINCIPAL) -->
-        <div class="nav-tabs admin-only">
-            <button type="button" class="tab-btn active" onclick="cambiarPestaña('despacho', this)">📋 Parte Diario</button>
-            <button type="button" class="tab-btn" onclick="cambiarPestaña('carga', this)">➕ Cargar / Editar Pedido</button>
-            <button type="button" class="tab-btn" onclick="cambiarPestaña('reportes', this)">📊 Historial y Reportes</button>
+        <div class="nav-tabs">
+            <button type="button" class="tab-btn active non-porteria" onclick="cambiarPestaña('despacho', this)">📋 Parte Diario</button>
+            <button type="button" class="tab-btn admin-only" onclick="cambiarPestaña('carga', this)">➕ Cargar / Editar Pedido</button>
+            <button type="button" class="tab-btn non-porteria reportes-only" onclick="cambiarPestaña('reportes', this)">📊 Historial y Reportes</button>
+            <button type="button" class="tab-btn porteria-tab-btn" onclick="cambiarPestaña('stock', this)">📦 Control de Stock</button>
         </div>
 
         <!-- PESTAÑA 1: PARTE DIARIO DE DESPACHO -->
-        <div id="tab-despacho" class="tab-content active">
+        <div id="tab-despacho" class="tab-content active non-porteria">
              <div class="card">
                   <h2>
                       <span id="table-title">Parte Diario de Despacho</span>
@@ -668,14 +692,13 @@
         </div>
 
         <!-- PESTAÑA 2: CARGAR / EDITAR PEDIDO -->
-        <div id="tab-carga" class="tab-content">
-             <div class="card admin-only operator-form-only">
+        <div id="tab-carga" class="tab-content admin-only">
+             <div class="card">
                  <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
                  <form id="order-form">
                       <input type="hidden" id="edit-id">
                       
                       <div class="form-grid-2col">
-                            <!-- Columna Izquierda del Formulario -->
                             <div>
                                 <div class="form-group">
                                      <label for="fecha">Fecha</label>
@@ -726,7 +749,6 @@
                                 </div>
                             </div>
 
-                            <!-- Columna Derecha del Formulario -->
                             <div>
                                 <div class="form-group">
                                      <label for="tipoHormigon">Tipo de H° (Principal)</label>
@@ -791,7 +813,6 @@
                                 </div>
                             </div>
 
-                            <!-- Campos Anchos (Ocupan todo el ancho de las 2 columnas) -->
                             <div class="form-group form-group-full">
                                   <label>Subproductos, Aditivos o Servicios Extra</label>
                                   <div class="aditivos-container" id="aditivos-container"></div>
@@ -817,9 +838,8 @@
              </div>
         </div>
 
-        <!-- PESTAÑA 3: HISTORIAL DE CLIENTES Y REPORTES -->
-        <div id="tab-reportes" class="tab-content">
-             <!-- Historial de Clientes -->
+        <!-- PESTAÑA 3: HISTORIAL Y REPORTES (Restringido para Plantista) -->
+        <div id="tab-reportes" class="tab-content non-porteria reportes-only">
              <div class="card">
                   <h2>Historial de Cliente</h2>
                   <div class="client-history-box">
@@ -831,7 +851,6 @@
                   </div>
              </div>
 
-             <!-- Reporte por Rango de Fechas -->
              <div class="card">
                  <h2>Reporte por Rango de Fechas</h2>
                  <div class="client-history-box" style="background: #f4ecf7; border-color: #d7bde2;">
@@ -849,6 +868,175 @@
                          </div>
                      </div>
                      <div id="range-results" style="margin-top: 10px; font-size: 13px;"></div>
+                 </div>
+             </div>
+        </div>
+
+        <!-- PESTAÑA 4: CONTROL DE STOCK E INGRESOS / EGRESOS -->
+        <div id="tab-stock" class="tab-content">
+             <!-- Panel exclusivo para el rol PORTERIA (Ingresos) -->
+             <div class="card porteria-only">
+                 <h2>Registrar Ingreso de Materia Prima (Portería)</h2>
+                 <form id="stock-entry-form" onsubmit="registrarMovimientoStock(event, 'ingreso')">
+                      <div class="form-grid-2col">
+                          <div class="form-group">
+                              <label for="ingreso-material">Material / Insumo</label>
+                              <select id="ingreso-material" required>
+                                  <option value="">-- Seleccionar Material --</option>
+                                  <option value="Cemento CPF40">Cemento CPF40 (tn)</option>
+                                  <option value="Macrofibras SIKA">Macrofibras SIKA (bolsas)</option>
+                                  <option value="Microfibras SIKA">Microfibras SIKA (bolsas)</option>
+                                  <option value="Holcim AdiFlow 1010">Holcim AdiFlow 1010 (kg)</option>
+                                  <option value="Piedra Granitica 6-12">Piedra Granítica 6-12 (tn)</option>
+                                  <option value="Piedra Granitica 6-19">Piedra Granítica 6-19 (tn)</option>
+                                  <option value="Piedra Granitica 20-30">Piedra Granítica 20-30 (tn)</option>
+                                  <option value="Piedra Granitica 30-50">Piedra Granítica 30-50 (tn)</option>
+                                  <option value="Canto Rodado">Canto Rodado (tn)</option>
+                                  <option value="Arena">Arena (tn)</option>
+                                  <option value="Acelerante">Acelerante (kg)</option>
+                                  <option value="Retardador">Retardador (kg)</option>
+                              </select>
+                          </div>
+                          <div class="form-group">
+                              <label for="ingreso-cantidad">Cantidad que Ingresa</label>
+                              <input type="number" step="0.01" id="ingreso-cantidad" placeholder="Ej: 28.5" required>
+                          </div>
+                          <div class="form-group form-group-full">
+                              <label for="ingreso-remito">Nº de Remito / Proveedor / Obs</label>
+                              <input type="text" id="ingreso-remito" placeholder="Ej: Remito Nº 4589 - Proveedor X">
+                          </div>
+                          <div class="form-group form-group-full">
+                              <button type="submit" style="background-color: #27ae60;">Registrar Ingreso en Planta</button>
+                          </div>
+                      </div>
+                 </form>
+             </div>
+
+             <!-- Panel exclusivo para el rol PLANTISTA (Descuento / Egresos de Stock) -->
+             <div class="card plantista-consumption-only" style="background: #fdfefe; border: 1px solid #f39c12;">
+                 <h2>📉 Registrar Consumo / Egreso de Stock (Plantista)</h2>
+                 <p style="font-size: 13px; color: #555; margin-bottom: 12px;">
+                     Registrá aquí los insumos consumidos en planta según los despachos realizados.
+                 </p>
+                 <form id="stock-consumption-form" onsubmit="registrarMovimientoStock(event, 'egreso')">
+                      <div class="form-grid-2col">
+                          <div class="form-group">
+                              <label for="egreso-material">Material / Insumo</label>
+                              <select id="egreso-material" required>
+                                  <option value="">-- Seleccionar Material --</option>
+                                  <option value="Cemento CPF40">Cemento CPF40 (tn)</option>
+                                  <option value="Macrofibras SIKA">Macrofibras SIKA (bolsas)</option>
+                                  <option value="Microfibras SIKA">Microfibras SIKA (bolsas)</option>
+                                  <option value="Holcim AdiFlow 1010">Holcim AdiFlow 1010 (kg)</option>
+                                  <option value="Piedra Granitica 6-12">Piedra Granítica 6-12 (tn)</option>
+                                  <option value="Piedra Granitica 6-19">Piedra Granítica 6-19 (tn)</option>
+                                  <option value="Piedra Granitica 20-30">Piedra Granítica 20-30 (tn)</option>
+                                  <option value="Piedra Granitica 30-50">Piedra Granítica 30-50 (tn)</option>
+                                  <option value="Canto Rodado">Canto Rodado (tn)</option>
+                                  <option value="Arena">Arena (tn)</option>
+                                  <option value="Acelerante">Acelerante (kg)</option>
+                                  <option value="Retardador">Retardador (kg)</option>
+                              </select>
+                          </div>
+                          <div class="form-group">
+                              <label for="egreso-cantidad">Cantidad Consumida</label>
+                              <input type="number" step="0.01" id="egreso-cantidad" placeholder="Ej: 15.2" required>
+                          </div>
+                          <div class="form-group form-group-full">
+                              <label for="egreso-obs">Motivo / Turno / Obs</label>
+                              <input type="text" id="egreso-obs" placeholder="Ej: Consumo despachos turno mañana">
+                          </div>
+                          <div class="form-group form-group-full">
+                              <button type="submit" style="background-color: #d35400;">Registrar Consumo en Planta</button>
+                          </div>
+                      </div>
+                 </form>
+             </div>
+
+             <!-- Panel exclusivo Administrador para Definir Stock Inicial / Arqueo -->
+             <div class="card admin-only" style="background: #eaf2f8; border: 1px solid #a9cce3;">
+                 <h2>⚙️ Definir / Ajustar Stock Inicial (Punto Cero)</h2>
+                 <p style="font-size: 13px; color: #555; margin-bottom: 12px;">
+                     Ingresá aquí los saldos reales actuales que tenés computados en planta para establecer el punto de partida. A partir de este momento, se sumarán los ingresos y se restarán los consumos aportados por el equipo.
+                 </p>
+                 <form id="stock-inicial-form" onsubmit="guardarStockInicial(event)">
+                      <div class="form-grid-2col">
+                          <div class="form-group">
+                              <label for="inicial-material">Material / Insumo</label>
+                              <select id="inicial-material" required>
+                                  <option value="">-- Seleccionar Material --</option>
+                                  <option value="Cemento CPF40">Cemento CPF40 (tn)</option>
+                                  <option value="Macrofibras SIKA">Macrofibras SIKA (bolsas)</option>
+                                  <option value="Microfibras SIKA">Microfibras SIKA (bolsas)</option>
+                                  <option value="Holcim AdiFlow 1010">Holcim AdiFlow 1010 (kg)</option>
+                                  <option value="Piedra Granitica 6-12">Piedra Granítica 6-12 (tn)</option>
+                                  <option value="Piedra Granitica 6-19">Piedra Granítica 6-19 (tn)</option>
+                                  <option value="Piedra Granitica 20-30">Piedra Granítica 20-30 (tn)</option>
+                                  <option value="Piedra Granitica 30-50">Piedra Granítica 30-50 (tn)</option>
+                                  <option value="Canto Rodado">Canto Rodado (tn)</option>
+                                  <option value="Arena">Arena (tn)</option>
+                                  <option value="Acelerante">Acelerante (kg)</option>
+                                  <option value="Retardador">Retardador (kg)</option>
+                              </select>
+                          </div>
+                          <div class="form-group">
+                              <label for="inicial-cantidad">Stock Real Actual</label>
+                              <input type="number" step="0.01" id="inicial-cantidad" placeholder="Ej: 150" required>
+                          </div>
+                          <div class="form-group form-group-full">
+                              <button type="submit" style="background-color: #2980b9;">Guardar / Actualizar Stock Inicial</button>
+                          </div>
+                      </div>
+                 </form>
+             </div>
+
+             <!-- Panel General de Stock -->
+             <div class="card">
+                 <h2>
+                     <span>Stock Actual de Materia Prima en Planta</span>
+                     <button type="button" class="btn-print non-porteria" onclick="window.print()">🖨️ Imprimir Stock</button>
+                 </h2>
+                 <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                     Control consolidado: (Stock Inicial + Ingresos Portería) - Consumos Plantista.
+                 </p>
+                 <div style="overflow-x: auto;">
+                     <table>
+                         <thead>
+                             <tr>
+                                 <th>Material / Insumo</th>
+                                 <th>Unidad</th>
+                                 <th>Stock Inicial (Base)</th>
+                                 <th>Total Ingresado (Portería)</th>
+                                 <th>Total Consumido (Plantista)</th>
+                                 <th>Stock Actual en Planta</th>
+                             </tr>
+                         </thead>
+                         <tbody id="stock-summary-table-body">
+                             <tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Cargando inventario...</td></tr>
+                         </tbody>
+                     </table>
+                 </div>
+             </div>
+
+             <!-- Historial reciente de movimientos para Admin -->
+             <div class="card admin-only">
+                 <h2>Últimos Movimientos de Stock Registrados</h2>
+                 <div style="overflow-x: auto; max-height: 220px; overflow-y: auto;">
+                     <table>
+                         <thead>
+                             <tr>
+                                 <th>Fecha y Hora</th>
+                                 <th>Tipo</th>
+                                 <th>Material</th>
+                                 <th>Cantidad</th>
+                                 <th>Remito / Observación</th>
+                                 <th>Acciones</th>
+                             </tr>
+                         </thead>
+                         <tbody id="stock-history-list">
+                             <tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Sin movimientos recientes.</td></tr>
+                         </tbody>
+                     </table>
                  </div>
              </div>
         </div>
@@ -870,8 +1058,24 @@
 
         const PASSWORDS = {
             admin: "admin123",
-            factura: "factura123"
+            factura: "factura123",
+            porteria: "porteria123"
         };
+
+        const materialesConfig = [
+            { nombre: "Cemento CPF40", unidad: "tn" },
+            { nombre: "Macrofibras SIKA", unidad: "bolsas" },
+            { nombre: "Microfibras SIKA", unidad: "bolsas" },
+            { nombre: "Holcim AdiFlow 1010", unidad: "kg" },
+            { nombre: "Piedra Granitica 6-12", unidad: "tn" },
+            { nombre: "Piedra Granitica 6-19", unidad: "tn" },
+            { nombre: "Piedra Granitica 20-30", unidad: "tn" },
+            { nombre: "Piedra Granitica 30-50", unidad: "tn" },
+            { nombre: "Canto Rodado", unidad: "tn" },
+            { nombre: "Arena", unidad: "tn" },
+            { nombre: "Acelerante", unidad: "kg" },
+            { nombre: "Retardador", unidad: "kg" }
+        ];
 
         const adicionalesOpciones = [
             "Macrofibra SIKA",
@@ -883,6 +1087,8 @@
         ];
 
         let orders = [];
+        let stockMovimientos = [];
+        let stockIniciales = {};
         let currentUserRole = 'admin'; 
         let camionesSecuenciaActual = []; 
 
@@ -927,12 +1133,13 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
 
             document.getElementById(`tab-${nombreTab}`).classList.add('active');
-            elementoBtn.classList.add('active');
+            if (elementoBtn) elementoBtn.classList.add('active');
         }
 
         function mostrarAuth(tipo) {
             document.getElementById('auth-box-admin').style.display = 'none';
             document.getElementById('auth-box-factura').style.display = 'none';
+            document.getElementById('auth-box-porteria').style.display = 'none';
             document.getElementById(`auth-box-${tipo}`).style.display = 'block';
             document.getElementById(`pass-${tipo}`).focus();
         }
@@ -957,6 +1164,11 @@
             if (currentUserRole === 'plantista') {
                 userDisplayRole.textContent = "Perfil: Plantista / Operador";
                 appBody.classList.add('operator-mode');
+                cambiarPestaña('stock', document.querySelector('.porteria-tab-btn'));
+            } else if (currentUserRole === 'porteria') {
+                userDisplayRole.textContent = "Perfil: Portería / Báscula";
+                appBody.classList.add('porteria-mode');
+                cambiarPestaña('stock', document.querySelector('.porteria-tab-btn'));
             } else if (currentUserRole === 'factura') {
                 userDisplayRole.textContent = "Perfil: Facturación";
                 appBody.classList.add('factura-mode');
@@ -964,13 +1176,16 @@
                 ayer.setDate(ayer.getDate() - 1);
                 filterDateInput.value = ayer.toISOString().split('T')[0];
                 filterDateInput.max = ayer.toISOString().split('T')[0];
+                cambiarPestaña('despacho', document.querySelector('.tab-btn'));
             } else {
                 userDisplayRole.textContent = "Perfil: Administración";
+                appBody.classList.add('admin-mode');
+                cambiarPestaña('despacho', document.querySelector('.tab-btn'));
             }
 
             loginScreen.style.display = 'none';
             mainApp.style.display = 'block';
-            escucharPedidosEnNube();
+            escucharDatosNube();
         }
 
         function cerrarSesion() {
@@ -978,8 +1193,8 @@
             mainApp.style.display = 'none';
             document.getElementById('pass-admin').value = '';
             document.getElementById('pass-factura').value = '';
-            document.getElementById('auth-box-admin').style.display = 'none';
-            document.getElementById('auth-box-factura').style.display = 'none';
+            document.getElementById('pass-porteria').value = '';
+            document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
             document.getElementById('login-error').textContent = '';
         }
 
@@ -1027,7 +1242,7 @@
             });
         }
 
-        function escucharPedidosEnNube() {
+        function escucharDatosNube() {
             db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
                 orders = [];
                 snapshot.forEach((doc) => {
@@ -1035,6 +1250,176 @@
                 });
                 render();
             });
+
+            db.collection("stock_movimientos").onSnapshot((snapshot) => {
+                stockMovimientos = [];
+                snapshot.forEach((doc) => {
+                    stockMovimientos.push({ firebaseId: doc.id, ...doc.data() });
+                });
+                renderizarStockMovimientos();
+            });
+
+            db.collection("stock_iniciales").onSnapshot((snapshot) => {
+                stockIniciales = {};
+                snapshot.forEach((doc) => {
+                    stockIniciales[doc.id] = doc.data().cantidad || 0;
+                });
+                calcularStockActual();
+            });
+        }
+
+        function registrarMovimientoStock(e, tipo) {
+            e.preventDefault();
+            let material, cantidad, obs;
+
+            if (tipo === 'ingreso') {
+                material = document.getElementById('ingreso-material').value;
+                cantidad = parseFloat(document.getElementById('ingreso-cantidad').value) || 0;
+                obs = document.getElementById('ingreso-remito').value.trim() || 'Sin remito';
+            } else {
+                material = document.getElementById('egreso-material').value;
+                cantidad = parseFloat(document.getElementById('egreso-cantidad').value) || 0;
+                obs = document.getElementById('egreso-obs').value.trim() || 'Consumo planta';
+            }
+
+            if (!material || cantidad <= 0) {
+                alert("Seleccioná un material válido e ingresá una cantidad mayor a 0.");
+                return;
+            }
+
+            const movimientoData = {
+                fechaHora: new Date().toISOString(),
+                tipo: tipo, // 'ingreso' o 'egreso'
+                material: material,
+                cantidad: cantidad,
+                observacion: obs
+            };
+
+            db.collection("stock_movimientos").add(movimientoData)
+                .then(() => {
+                    if (tipo === 'ingreso') {
+                        document.getElementById('ingreso-material').value = '';
+                        document.getElementById('ingreso-cantidad').value = '';
+                        document.getElementById('ingreso-remito').value = '';
+                        alert("¡Ingreso de stock registrado con éxito!");
+                    } else {
+                        document.getElementById('egreso-material').value = '';
+                        document.getElementById('egreso-cantidad').value = '';
+                        document.getElementById('egreso-obs').value = '';
+                        alert("¡Consumo registrado con éxito!");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al registrar movimiento: ", error);
+                    alert("Error al guardar en la base de datos.");
+                });
+        }
+
+        function guardarStockInicial(e) {
+            e.preventDefault();
+            if (currentUserRole !== 'admin') return;
+
+            const material = document.getElementById('inicial-material').value;
+            const cantidad = parseFloat(document.getElementById('inicial-cantidad').value) || 0;
+
+            if (!material) {
+                alert("Seleccioná un material.");
+                return;
+            }
+
+            db.collection("stock_iniciales").doc(material).set({ cantidad: cantidad })
+                .then(() => {
+                    document.getElementById('inicial-material').value = '';
+                    document.getElementById('inicial-cantidad').value = '';
+                    alert(`¡Stock inicial de ${material} actualizado correctamente!`);
+                })
+                .catch(error => {
+                    console.error("Error al guardar stock inicial: ", error);
+                    alert("Error al guardar en la base de datos.");
+                });
+        }
+
+        function eliminarMovimientoStock(firebaseId) {
+            if (currentUserRole !== 'admin') return;
+            if (confirm("¿Estás seguro de eliminar este registro?")) {
+                db.collection("stock_movimientos").doc(firebaseId).delete();
+            }
+        }
+
+        function calcularStockActual() {
+            let totalesIngresos = {};
+            let totalesEgresos = {};
+
+            materialesConfig.forEach(m => {
+                totalesIngresos[m.nombre] = 0;
+                totalesEgresos[m.nombre] = 0;
+            });
+
+            // Sumar ingresos y egresos puros aportados por portería y plantista
+            stockMovimientos.forEach(item => {
+                if (item.tipo === 'ingreso') {
+                    if (totalesIngresos[item.material] !== undefined) {
+                        totalesIngresos[item.material] += parseFloat(item.cantidad) || 0;
+                    }
+                } else if (item.tipo === 'egreso') {
+                    if (totalesEgresos[item.material] !== undefined) {
+                        totalesEgresos[item.material] += parseFloat(item.cantidad) || 0;
+                    }
+                }
+            });
+
+            let tbody = document.getElementById('stock-summary-table-body');
+            tbody.innerHTML = '';
+
+            materialesConfig.forEach(m => {
+                let inicial = stockIniciales[m.nombre] || 0;
+                let ingresado = totalesIngresos[m.nombre] || 0;
+                let consumido = totalesEgresos[m.nombre] || 0;
+                let actual = (inicial + ingresado) - consumido;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${m.nombre}</strong></td>
+                    <td>${m.unidad}</td>
+                    <td style="color: #2980b9; font-weight: bold;">${inicial.toFixed(2)}</td>
+                    <td style="color: #27ae60; font-weight: bold;">+${ingresado.toFixed(2)}</td>
+                    <td style="color: #e74c3c; font-weight: bold;">-${consumido.toFixed(2)}</td>
+                    <td style="font-weight: bold; color: ${actual < 0 ? '#e74c3c' : '#2c3e50'};">${actual.toFixed(2)} ${m.unidad}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderizarStockMovimientos() {
+            let listEl = document.getElementById('stock-history-list');
+            if (!listEl) return;
+
+            listEl.innerHTML = '';
+            if (stockMovimientos.length === 0) {
+                listEl.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Sin movimientos recientes.</td></tr>`;
+                return;
+            }
+
+            const movsOrdenados = [...stockMovimientos].sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
+
+            movsOrdenados.forEach(item => {
+                let fechaFormateada = item.fechaHora.replace('T', ' ').substring(0, 16);
+                let tipoBadge = item.tipo === 'ingreso' 
+                    ? `<span style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">INGRESO</span>` 
+                    : `<span style="background: #d35400; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">CONSUMO</span>`;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${fechaFormateada}</td>
+                    <td>${tipoBadge}</td>
+                    <td><strong>${item.material}</strong></td>
+                    <td style="font-weight: bold; color: ${item.tipo === 'ingreso' ? '#27ae60' : '#d35400'};">${item.tipo === 'ingreso' ? '+' : '-'}${item.cantidad}</td>
+                    <td>${item.observacion}</td>
+                    <td><button type="button" class="btn-delete" onclick="eliminarMovimientoStock('${item.firebaseId}')" style="padding: 2px 6px; font-size: 10px;">Borrar</button></td>
+                `;
+                listEl.appendChild(tr);
+            });
+            calcularStockActual();
         }
 
         function agregarFilaAditivo(nombre = '', cantidad = '', precio = '') {
@@ -1111,7 +1496,7 @@
                     .then(() => {
                         resetForm();
                         alert("¡Pedido actualizado correctamente!");
-                        document.querySelector('.nav-tabs button').click();
+                        cambiarPestaña('despacho', document.querySelector('.tab-btn'));
                     })
                     .catch(error => {
                         console.error("Error al actualizar: ", error);
@@ -1133,7 +1518,7 @@
                         aditivosContainer.innerHTML = '';
                         clienteSelect.focus();
                         alert("¡Pedido guardado correctamente!");
-                        document.querySelector('.nav-tabs button').click();
+                        cambiarPestaña('despacho', document.querySelector('.tab-btn'));
                     })
                     .catch(error => {
                         console.error("Error al guardar: ", error);
@@ -1205,7 +1590,6 @@
             if (!orderToDuplicate) return;
 
             editIdInput.value = '';
-            
             document.getElementById('fecha').value = todayStr;
             document.getElementById('hora').value = orderToDuplicate.hora;
             
@@ -1367,13 +1751,7 @@
                     <style>
                         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
                         h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
-                        div[style*="max-height"] {
-                            max-height: none !important;
-                            overflow: visible !important;
-                            border: none !important;
-                            padding: 0 !important;
-                            background: transparent !important;
-                        }
+                        div[style*="max-height"] { max-height: none !important; overflow: visible !important; border: none !important; padding: 0 !important; background: transparent !important; }
                         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
                         table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
                         table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1383,12 +1761,7 @@
                 <body>
                     <h2>Historial de Cliente: ${clienteNombre}</h2>
                     ${contenidoTabla}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            window.close();
-                        }
-                    <\/script>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
                 </body>
                 </html>
             `);
@@ -1420,9 +1793,8 @@
 
             pedidosRango.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
-                totalMetros += vol;
-
                 let precioU = p.precioUnitario || 0;
+                totalMetros += vol;
                 let subHormigon = vol * precioU;
                 let subExtras = 0;
 
@@ -1450,15 +1822,13 @@
             html += `<button type="button" class="btn-print no-print" onclick="imprimirReporteRango('${startStr}', '${endStr}')" style="padding: 4px 10px; font-size: 12px; width: auto;">🖨️ Imprimir Reporte</button>`;
             html += `</div>`;
 
-            // Resumen de totales
             html += `<div id="range-summary-box" style="padding: 10px; background: #fff; border: 1px solid #d7bde2; border-radius: 4px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; text-align: center; margin-bottom: 10px;">`;
             html += `<div>Total Pedidos: <br><strong style="font-size: 15px; color: #8e44ad;">${totalPedidos}</strong></div>`;
             html += `<div>Volumen Total: <br><strong style="font-size: 15px; color: var(--secondary-color);">${totalMetros.toFixed(2)} m³</strong></div>`;
             html += `<div>Facturación (Cta. Cte.): <br><strong style="font-size: 15px; color: #27ae60;">$${totalDinero.toLocaleString()}</strong></div>`;
             html += `</div>`;
 
-            // Tabla detallada de pedidos incluidos en el rango
-            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #d7bde2; background: #fff; padding: 8px; border-radius: 4px;" id="range-table-container">`;
+            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #d7bde2; background: #fff; padding: 8px; border-radius: 4px;">`;
             html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th></tr></thead><tbody>`;
 
             pedidosRango.forEach(p => {
@@ -1485,7 +1855,6 @@
             });
 
             html += `</tbody></table></div>`;
-
             resultsEl.innerHTML = html;
         }
 
@@ -1502,19 +1871,7 @@
                     <style>
                         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
                         h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
-                        div[style*="max-height"] {
-                            max-height: none !important;
-                            overflow: visible !important;
-                            border: none !important;
-                            padding: 0 !important;
-                            background: transparent !important;
-                        }
-                        #range-summary-box {
-                            border: 1px solid #000 !important;
-                            background: #f8f9fa !important;
-                            -webkit-print-color-adjust: exact;
-                            print-color-adjust: exact;
-                        }
+                        #range-summary-box { border: 1px solid #000 !important; background: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
                         table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
                         table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1524,12 +1881,7 @@
                 <body>
                     <h2>Reporte de Rango de Fechas: Desde ${startStr} Hasta ${endStr}</h2>
                     ${rangeResultsHtml}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            window.close();
-                        }
-                    <\/script>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
                 </body>
                 </html>
             `);
