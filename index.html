@@ -147,10 +147,45 @@
             color: var(--secondary-color);
         }
 
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1fr 1.6fr;
-            gap: 20px;
+        /* Sistema de Pestañas (Tabs) */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background-color: #bdc3c7;
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+            width: auto;
+        }
+
+        .tab-btn:hover {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .tab-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         body.operator-mode .admin-only, 
@@ -158,17 +193,6 @@
         body.factura-mode .admin-only,
         body.factura-mode .operator-form-only {
             display: none !important;
-        }
-
-        body.operator-mode .grid-layout,
-        body.factura-mode .grid-layout {
-            grid-template-columns: 1fr;
-        }
-
-        @media (max-width: 1000px) {
-            .grid-layout {
-                grid-template-columns: 1fr;
-            }
         }
 
         .card {
@@ -477,7 +501,7 @@
 
         @media print {
             body { background-color: white; padding: 0; color: black; }
-            header, .dashboard-stats, .grid-layout > .card:first-child, .filter-section, .no-print { display: none !important; }
+            header, .dashboard-stats, .nav-tabs, .filter-section, .no-print { display: none !important; }
             
             .print-header {
                 display: flex;
@@ -491,8 +515,8 @@
             .print-header h2 { margin: 0; font-size: 16px; color: black; }
 
             .container { max-width: 100%; margin: 0; padding: 0; }
-            .grid-layout { display: block; }
             .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+            .tab-content { display: block !important; }
             
             table { font-size: 12px; width: 100%; border-collapse: collapse; }
             table th, table td { border: 1px solid #000 !important; padding: 8px; color: black !important; }
@@ -584,20 +608,67 @@
              <div>Pedidos Registrados (Mes): <span id="monthly-count">0</span></div>
         </div>
 
-        <!-- Historial de Clientes (Solo Admin) -->
-        <div class="card no-print admin-only">
-             <h2>Historial de Cliente</h2>
-             <div class="client-history-box">
-                 <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
-                 <select id="select-client-history" onchange="verHistorialCliente()">
-                     <option value="">-- Seleccionar Cliente --</option>
-                 </select>
-                 <div id="client-history-results" style="margin-top: 10px; font-size: 13px;"></div>
+        <!-- BARRA DE PESTAÑAS (NAVEGACIÓN PRINCIPAL) -->
+        <div class="nav-tabs admin-only">
+            <button type="button" class="tab-btn active" onclick="cambiarPestaña('despacho', this)">📋 Parte Diario</button>
+            <button type="button" class="tab-btn" onclick="cambiarPestaña('carga', this)">➕ Cargar / Editar Pedido</button>
+            <button type="button" class="tab-btn" onclick="cambiarPestaña('reportes', this)">📊 Historial y Reportes</button>
+        </div>
+
+        <!-- PESTAÑA 1: PARTE DIARIO DE DESPACHO -->
+        <div id="tab-despacho" class="tab-content active">
+             <div class="card">
+                  <h2>
+                      <span id="table-title">Parte Diario de Despacho</span>
+                      <button class="btn-print" onclick="window.print()">🖨️ Imprimir Listado</button>
+                  </h2>
+                  
+                  <div class="print-header">
+                      <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" onerror="this.style.display='none'">
+                      <h2>LISTADO DE DESPACHO - <span id="print-date-title"></span></h2>
+                  </div>
+
+                  <div class="filter-section">
+                      <div class="form-group" style="flex: 1; margin: 0;">
+                            <label for="filter-date" id="filter-date-label">Filtrar por Día:</label>
+                            <input type="date" id="filter-date">
+                      </div>
+                  </div>
+
+                  <div style="overflow-x: auto;">
+                      <table id="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Orden de Salida (Mixers)</th>
+                                    <th>Cliente</th>
+                                    <th>H° e Ítems Extra</th>
+                                    <th>Ubicación</th>
+                                    <th>Volumen</th>
+                                    <th class="factura-only">Condición / Pago</th>
+                                    <th class="factura-only">Total Pedido ($)</th>
+                                    <th>Observaciones</th>
+                                    <th class="col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-list">
+                                <tr><td colspan="10" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
+                            </tbody>
+                      </table>
+                  </div>
+                  <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold;">
+                      <div class="factura-only" id="total-dinero-container" style="color: #27ae60;">
+                          Total Facturación a Cobrar Día: $<span id="daily-money-total">0.00</span>
+                      </div>
+                      <div style="margin-left: auto;">
+                          Total Volumen Día: <span id="daily-total">0.00</span> m³
+                      </div>
+                  </div>
              </div>
         </div>
 
-        <div class="grid-layout">
-             <!-- Formulario de Carga / Edición en 2 Columnas (Solo Admin) -->
+        <!-- PESTAÑA 2: CARGAR / EDITAR PEDIDO -->
+        <div id="tab-carga" class="tab-content">
              <div class="card admin-only operator-form-only">
                  <h2 id="form-title">Cargar Nuevo Turno / Pedido</h2>
                  <form id="order-form">
@@ -682,6 +753,8 @@
                                              <option value="H21 Bombeable">H21 Bombeable</option>
                                              <option value="H25 Bombeable">H25 Bombeable</option>
                                              <option value="H30 Bombeable">H30 Bombeable</option>
+                                             <option value="RDC Bombeable">RDC Bombeable</option>
+                                             <option value="H°Liv c/Telgopor Bombeable">H°Liv c/Telgopor Bombeable</option>
                                          </optgroup>
                                          <optgroup label="Canto Rodado">
                                              <option value="H8 Canto Rodado">H8 Canto Rodado</option>
@@ -690,6 +763,13 @@
                                              <option value="H21 Canto Rodado">H21 Canto Rodado</option>
                                              <option value="H25 Canto Rodado">H25 Canto Rodado</option>
                                              <option value="H30 Canto Rodado">H30 Canto Rodado</option>
+                                         </optgroup>
+                                         <optgroup label="RDC / Livianos">
+                                             <option value="RDC100">RDC100</option>
+                                             <option value="RDC150">RDC150</option>
+                                             <option value="RDC200">RDC200</option>
+                                             <option value="RDC300">RDC300</option>
+                                             <option value="H° Liv c/telgopor">H° Liv c/telgopor</option>
                                          </optgroup>
                                      </select>
                                 </div>
@@ -735,55 +815,41 @@
                       </div>
                  </form>
              </div>
+        </div>
 
-             <!-- Vista de Despacho y Parte Diario -->
-             <div class="card" style="grid-column: span 2;" id="main-content-card">
-                  <h2>
-                      <span id="table-title">Parte Diario de Despacho</span>
-                      <button class="btn-print" onclick="window.print()">🖨️ Imprimir Listado</button>
-                  </h2>
-                  
-                  <div class="print-header">
-                      <img src="GyE - Isologo - División Hormigón.png" alt="GyE Logo" onerror="this.style.display='none'">
-                      <h2>LISTADO DE DESPACHO - <span id="print-date-title"></span></h2>
+        <!-- PESTAÑA 3: HISTORIAL DE CLIENTES Y REPORTES -->
+        <div id="tab-reportes" class="tab-content">
+             <!-- Historial de Clientes -->
+             <div class="card">
+                  <h2>Historial de Cliente</h2>
+                  <div class="client-history-box">
+                      <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
+                      <select id="select-client-history" onchange="verHistorialCliente()">
+                          <option value="">-- Seleccionar Cliente --</option>
+                      </select>
+                      <div id="client-history-results" style="margin-top: 10px; font-size: 13px;"></div>
                   </div>
+             </div>
 
-                  <div class="filter-section">
-                      <div class="form-group" style="flex: 1; margin: 0;">
-                            <label for="filter-date" id="filter-date-label">Filtrar por Día:</label>
-                            <input type="date" id="filter-date">
-                      </div>
-                  </div>
-
-                  <div style="overflow-x: auto;">
-                      <table id="orders-table">
-                            <thead>
-                                <tr>
-                                    <th>Hora</th>
-                                    <th>Orden de Salida (Mixers)</th>
-                                    <th>Cliente</th>
-                                    <th>H° e Ítems Extra</th>
-                                    <th>Ubicación</th>
-                                    <th>Volumen</th>
-                                    <th class="factura-only">Condición / Pago</th>
-                                    <th class="factura-only">Total Pedido ($)</th>
-                                    <th>Observaciones</th>
-                                    <th class="col-acciones">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="orders-list">
-                                <tr><td colspan="10" style="text-align: center; color: #7f8c8d;">Cargando...</td></tr>
-                            </tbody>
-                      </table>
-                  </div>
-                  <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold;">
-                      <div class="factura-only" id="total-dinero-container" style="color: #27ae60;">
-                          Total Facturación a Cobrar Día: $<span id="daily-money-total">0.00</span>
-                      </div>
-                      <div style="margin-left: auto;">
-                          Total Volumen Día: <span id="daily-total">0.00</span> m³
-                      </div>
-                  </div>
+             <!-- Reporte por Rango de Fechas -->
+             <div class="card">
+                 <h2>Reporte por Rango de Fechas</h2>
+                 <div class="client-history-box" style="background: #f4ecf7; border-color: #d7bde2;">
+                     <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap;">
+                         <div class="form-group" style="flex: 1; margin: 0; min-width: 140px;">
+                             <label for="range-start-date">Desde:</label>
+                             <input type="date" id="range-start-date">
+                         </div>
+                         <div class="form-group" style="flex: 1; margin: 0; min-width: 140px;">
+                             <label for="range-end-date">Hasta:</label>
+                             <input type="date" id="range-end-date">
+                         </div>
+                         <div>
+                             <button type="button" class="btn-print" onclick="calcularRangoFechas()" style="padding: 9px 15px; font-size: 13px; background-color: #8e44ad;">Calcular Rango</button>
+                         </div>
+                     </div>
+                     <div id="range-results" style="margin-top: 10px; font-size: 13px;"></div>
+                 </div>
              </div>
         </div>
     </div>
@@ -855,6 +921,14 @@
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('fecha').value = todayStr;
         filterDateInput.value = todayStr;
+
+        function cambiarPestaña(nombreTab, elementoBtn) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(`tab-${nombreTab}`).classList.add('active');
+            elementoBtn.classList.add('active');
+        }
 
         function mostrarAuth(tipo) {
             document.getElementById('auth-box-admin').style.display = 'none';
@@ -1037,6 +1111,7 @@
                     .then(() => {
                         resetForm();
                         alert("¡Pedido actualizado correctamente!");
+                        document.querySelector('.nav-tabs button').click();
                     })
                     .catch(error => {
                         console.error("Error al actualizar: ", error);
@@ -1058,6 +1133,7 @@
                         aditivosContainer.innerHTML = '';
                         clienteSelect.focus();
                         alert("¡Pedido guardado correctamente!");
+                        document.querySelector('.nav-tabs button').click();
                     })
                     .catch(error => {
                         console.error("Error al guardar: ", error);
@@ -1118,7 +1194,9 @@
             formTitle.textContent = "Editar Turno / Pedido";
             btnSubmit.textContent = "Actualizar Pedido";
             btnCancel.style.display = "block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const botonesTabs = document.querySelectorAll('.tab-btn');
+            cambiarPestaña('carga', botonesTabs[1]);
         }
 
         function duplicateOrder(firebaseId) {
@@ -1159,7 +1237,9 @@
             formTitle.textContent = "Duplicar Turno / Pedido";
             btnSubmit.textContent = "Guardar como Nuevo Pedido";
             btnCancel.style.display = "block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const botonesTabs = document.querySelectorAll('.tab-btn');
+            cambiarPestaña('carga', botonesTabs[1]);
         }
 
         function resetForm() {
@@ -1221,8 +1301,8 @@
                 return;
             }
 
-            let totalMetrosCuadrados = 0; // Acumulador de volumen
-            let totalDineroCliente = 0;   // Acumulador de dinero
+            let totalMetrosCuadrados = 0; 
+            let totalDineroCliente = 0;   
 
             let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
             html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong>`;
@@ -1234,7 +1314,7 @@
             
             pedidosCliente.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
-                totalMetrosCuadrados += vol; // Sumamos al total de m3
+                totalMetrosCuadrados += vol; 
 
                 let precioU = p.precioUnitario || 0;
                 let subHormigon = vol * precioU;
@@ -1252,7 +1332,7 @@
                 let totalItem = (cond === 'normal') ? (subHormigon + subExtras) : 0;
                 
                 if (cond === 'normal') {
-                    totalDineroCliente += totalItem; // Sumamos al total de dinero (solo si es cobro normal/cta cte)
+                    totalDineroCliente += totalItem; 
                 }
 
                 let condTexto = cond === 'compensacion' ? 'Trueque/Compensación' : (cond === 'acopio' ? 'Pagado en Acopio' : 'Cta. Cte.');
@@ -1266,7 +1346,6 @@
             });
             html += `</tbody></table></div>`;
 
-            // Bloque con los totales sumados abajo de la tabla
             html += `<div style="margin-top: 10px; padding: 8px 12px; background: #ebf5fb; border: 1px solid #a9cce3; border-radius: 4px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
                 <div>Total Volumen Histórico: <span style="color: var(--secondary-color);">${totalMetrosCuadrados.toFixed(2)} m³</span></div>
                 <div style="color: #27ae60;">Total Facturación Histórica (Cta. Cte.): $<span id="print-total-dinero">${totalDineroCliente.toLocaleString()}</span></div>
@@ -1304,6 +1383,147 @@
                 <body>
                     <h2>Historial de Cliente: ${clienteNombre}</h2>
                     ${contenidoTabla}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            ventanaImpresion.document.close();
+        }
+
+        function calcularRangoFechas() {
+            const startStr = document.getElementById('range-start-date').value;
+            const endStr = document.getElementById('range-end-date').value;
+            const resultsEl = document.getElementById('range-results');
+
+            if (!startStr || !endStr) {
+                alert("Por favor, seleccioná ambas fechas (Desde y Hasta).");
+                return;
+            }
+
+            if (startStr > endStr) {
+                alert("La fecha 'Desde' no puede ser posterior a la fecha 'Hasta'.");
+                return;
+            }
+
+            const pedidosRango = orders
+                .filter(o => o.fecha >= startStr && o.fecha <= endStr)
+                .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora));
+
+            let totalPedidos = pedidosRango.length;
+            let totalMetros = 0;
+            let totalDinero = 0;
+
+            pedidosRango.forEach(p => {
+                let vol = parseFloat(p.cantidad) || 0;
+                totalMetros += vol;
+
+                let precioU = p.precioUnitario || 0;
+                let subHormigon = vol * precioU;
+                let subExtras = 0;
+
+                if (p.aditivos && Array.isArray(p.aditivos)) {
+                    p.aditivos.forEach(item => {
+                        if (typeof item === 'object') {
+                            subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+                        }
+                    });
+                }
+
+                let cond = p.condicionPago || 'normal';
+                if (cond === 'normal') {
+                    totalDinero += (subHormigon + subExtras);
+                }
+            });
+
+            if (totalPedidos === 0) {
+                resultsEl.innerHTML = `<em>No se encontraron pedidos en el rango de fechas seleccionado.</em>`;
+                return;
+            }
+
+            let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
+            html += `<strong style="font-size: 14px; color: var(--primary-color);">Reporte de ${startStr} al ${endStr}</strong>`;
+            html += `<button type="button" class="btn-print no-print" onclick="imprimirReporteRango('${startStr}', '${endStr}')" style="padding: 4px 10px; font-size: 12px; width: auto;">🖨️ Imprimir Reporte</button>`;
+            html += `</div>`;
+
+            // Resumen de totales
+            html += `<div id="range-summary-box" style="padding: 10px; background: #fff; border: 1px solid #d7bde2; border-radius: 4px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; text-align: center; margin-bottom: 10px;">`;
+            html += `<div>Total Pedidos: <br><strong style="font-size: 15px; color: #8e44ad;">${totalPedidos}</strong></div>`;
+            html += `<div>Volumen Total: <br><strong style="font-size: 15px; color: var(--secondary-color);">${totalMetros.toFixed(2)} m³</strong></div>`;
+            html += `<div>Facturación (Cta. Cte.): <br><strong style="font-size: 15px; color: #27ae60;">$${totalDinero.toLocaleString()}</strong></div>`;
+            html += `</div>`;
+
+            // Tabla detallada de pedidos incluidos en el rango
+            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #d7bde2; background: #fff; padding: 8px; border-radius: 4px;" id="range-table-container">`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th></tr></thead><tbody>`;
+
+            pedidosRango.forEach(p => {
+                let vol = parseFloat(p.cantidad) || 0;
+                let precioU = p.precioUnitario || 0;
+                let subH = vol * precioU;
+                let subE = 0;
+                if (p.aditivos && Array.isArray(p.aditivos)) {
+                    p.aditivos.forEach(item => {
+                        if (typeof item === 'object') {
+                            subE += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+                        }
+                    });
+                }
+                let cond = p.condicionPago || 'normal';
+                let totalItem = (cond === 'normal') ? (subH + subE) : 0;
+                let condTexto = cond === 'compensacion' ? 'Trueque/Compensación' : (cond === 'acopio' ? 'Pagado en Acopio' : 'Cta. Cte.');
+
+                html += `<tr>
+                    <td>${p.fecha}</td><td>${p.hora}</td><td>${p.cliente}</td><td>${p.ubicacion}</td>
+                    <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td>
+                    <td><strong>$${totalItem.toLocaleString()}</strong></td>
+                </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+
+            resultsEl.innerHTML = html;
+        }
+
+        function imprimirReporteRango(startStr, endStr) {
+            const rangeResultsHtml = document.getElementById('range-results').innerHTML;
+            const ventanaImpresion = window.open('', '_blank', 'width=900,height=650');
+            
+            ventanaImpresion.document.write(`
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Reporte de Rango (${startStr} al ${endStr})</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
+                        div[style*="max-height"] {
+                            max-height: none !important;
+                            overflow: visible !important;
+                            border: none !important;
+                            padding: 0 !important;
+                            background: transparent !important;
+                        }
+                        #range-summary-box {
+                            border: 1px solid #000 !important;
+                            background: #f8f9fa !important;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+                        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+                        table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
+                        table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print, button { display: none !important; }
+                    </style>
+                </head>
+                <body>
+                    <h2>Reporte de Rango de Fechas: Desde ${startStr} Hasta ${endStr}</h2>
+                    ${rangeResultsHtml}
                     <script>
                         window.onload = function() {
                             window.print();
@@ -1438,6 +1658,9 @@
                 monthlyCountEl.textContent = monthlyCount;
                 actualizarListasClientes();
                 if (selectClientHistory.value) verHistorialCliente();
+                if (document.getElementById('range-start-date').value && document.getElementById('range-end-date').value) {
+                    calcularRangoFechas();
+                }
             }
         }
 
