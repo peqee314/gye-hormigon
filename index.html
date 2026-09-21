@@ -1178,8 +1178,8 @@
             html += `<button type="button" class="btn-print no-print" onclick="imprimirHistorialCliente('${clienteBuscado}')" style="padding: 4px 10px; font-size: 12px; width: auto;">🖨️ Imprimir Historial</button>`;
             html += `</div>`;
 
-            html += `<div style="max-height: 180px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th></tr></thead><tbody>`;
+            html += `<div style="max-height: 220px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th><th>Acción</th></tr></thead><tbody>`;
             
             pedidosCliente.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
@@ -1203,6 +1203,7 @@
                     <td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td>
                     <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td>
                     <td><strong>$${totalItem.toLocaleString()}</strong></td>
+                    <td><button type="button" class="btn-duplicate" onclick="duplicateOrder('${p.firebaseId}')" style="padding: 3px 6px; font-size: 10px;">Duplicar</button></td>
                 </tr>`;
             });
             html += `</tbody></table></div>`;
@@ -1210,46 +1211,45 @@
         }
 
         function imprimirHistorialCliente(clienteNombre) {
-    const contenidoTabla = clientHistoryResults.innerHTML;
-    const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
-    
-    ventanaImpresion.document.write(`
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <title>Historial de ${clienteNombre}</title>
-            <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
-                h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
-                /* Forzamos a que la caja contenedora muestre todo el contenido sin cortes ni barras */
-                div[style*="max-height"] {
-                    max-height: none !important;
-                    overflow: visible !important;
-                    border: none !important;
-                    padding: 0 !important;
-                    background: transparent !important;
-                }
-                table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-                table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
-                table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                .no-print { display: none !important; }
-            </style>
-        </head>
-        <body>
-            <h2>Historial de Cliente: ${clienteNombre}</h2>
-            ${contenidoTabla}
-            <script>
-                window.onload = function() {
-                    window.print();
-                    window.close();
-                }
-            <\/script>
-        </body>
-        </html>
-    `);
-    ventanaImpresion.document.close();
-}
+            const contenidoTabla = clientHistoryResults.innerHTML;
+            const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+            
+            ventanaImpresion.document.write(`
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Historial de ${clienteNombre}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
+                        div[style*="max-height"] {
+                            max-height: none !important;
+                            overflow: visible !important;
+                            border: none !important;
+                            padding: 0 !important;
+                            background: transparent !important;
+                        }
+                        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+                        table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
+                        table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print, button { display: none !important; }
+                    </style>
+                </head>
+                <body>
+                    <h2>Historial de Cliente: ${clienteNombre}</h2>
+                    ${contenidoTabla}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            ventanaImpresion.document.close();
+        }
 
         function render() {
             let selectedDate = filterDateInput.value;
