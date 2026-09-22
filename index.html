@@ -517,10 +517,8 @@
             body { background-color: white; padding: 0; color: black; }
             header, .dashboard-stats, .nav-tabs, .filter-section, .no-print { display: none !important; }
             
-            /* Ocultar todas las pestañas por defecto al imprimir */
             .tab-content { display: none !important; }
             
-            /* Mostrar ÚNICAMENTE la pestaña activa del Parte Diario */
             #tab-despacho.tab-content.active {
                 display: block !important;
             }
@@ -689,7 +687,7 @@
                   </div>
                   <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold;">
                       <div class="factura-only" id="total-dinero-container" style="color: #27ae60;">
-                          Total Facturación a Cobrar Día (+ IVA): $<span id="daily-money-total">0.00</span>
+                          Total Facturación a Cobrar Día (+ IVA): $<span id="daily-money-total">0.00</span> (+ IVA)
                       </div>
                       <div style="margin-left: auto;">
                           Total Volumen Día: <span id="daily-total">0.00</span> m³
@@ -1320,7 +1318,7 @@
 
             const movimientoData = {
                 fechaHora: new Date().toISOString(),
-                tipo: tipo, // 'ingreso' o 'egreso'
+                tipo: tipo, 
                 material: material,
                 cantidad: cantidad,
                 observacion: obs
@@ -1619,7 +1617,10 @@
             const orderToDuplicate = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToDuplicate) return;
 
+            // Al duplicar dejamos el editId vacío para que se cree un nuevo registro
             editIdInput.value = '';
+            
+            // Mantenemos la fecha actual o permitimos que elijas, aquí asignamos la actual
             document.getElementById('fecha').value = todayStr;
             document.getElementById('hora').value = orderToDuplicate.hora;
             
@@ -1627,6 +1628,7 @@
             clienteSelect.value = orderToDuplicate.cliente;
             esFacturadoCheckbox.checked = !!orderToDuplicate.facturado;
 
+            // Mantenemos todos los camiones y configuraciones intactas para que elijas qué cambiar
             camionesSecuenciaActual = orderToDuplicate.camiones ? [...orderToDuplicate.camiones] : [];
             renderizarSecuenciaUI();
 
@@ -1724,7 +1726,7 @@
             html += `</div>`;
 
             html += `<div style="max-height: 220px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido (+ IVA)</th><th>Acción</th></tr></thead><tbody>`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido ($ + IVA)</th><th>Acción</th></tr></thead><tbody>`;
             
             pedidosCliente.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
@@ -1762,7 +1764,7 @@
 
             html += `<div style="margin-top: 10px; padding: 8px 12px; background: #ebf5fb; border: 1px solid #a9cce3; border-radius: 4px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
                 <div>Total Volumen Histórico: <span style="color: var(--secondary-color);">${totalMetrosCuadrados.toFixed(2)} m³</span></div>
-                <div style="color: #27ae60;">Total Facturación Histórica (Cta. Cte. + IVA): $<span id="print-total-dinero">${totalDineroCliente.toLocaleString()}</span></div>
+                <div style="color: #27ae60;">Total Facturación Histórica (Cta. Cte. + IVA): $<span id="print-total-dinero">${totalDineroCliente.toLocaleString()}</span> (+ IVA)</div>
             </div>`;
 
             clientHistoryResults.innerHTML = html;
@@ -1855,11 +1857,11 @@
             html += `<div id="range-summary-box" style="padding: 10px; background: #fff; border: 1px solid #d7bde2; border-radius: 4px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; text-align: center; margin-bottom: 10px;">`;
             html += `<div>Total Pedidos: <br><strong style="font-size: 15px; color: #8e44ad;">${totalPedidos}</strong></div>`;
             html += `<div>Volumen Total: <br><strong style="font-size: 15px; color: var(--secondary-color);">${totalMetros.toFixed(2)} m³</strong></div>`;
-            html += `<div>Facturación (Cta. Cte. + IVA): <br><strong style="font-size: 15px; color: #27ae60;">$${totalDinero.toLocaleString()}</strong></div>`;
+            html += `<div>Facturación (Cta. Cte. + IVA): <br><strong style="font-size: 15px; color: #27ae60;">$${totalDinero.toLocaleString()} (+ IVA)</strong></div>`;
             html += `</div>`;
 
             html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #d7bde2; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido (+ IVA)</th></tr></thead><tbody>`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido ($ + IVA)</th></tr></thead><tbody>`;
 
             pedidosRango.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
