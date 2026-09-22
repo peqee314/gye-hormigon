@@ -513,9 +513,17 @@
 
         .print-header { display: none; }
 
-        @media print {
+@media print {
             body { background-color: white; padding: 0; color: black; }
             header, .dashboard-stats, .nav-tabs, .filter-section, .no-print { display: none !important; }
+            
+            /* Ocultar todas las pestañas por defecto al imprimir */
+            .tab-content { display: none !important; }
+            
+            /* Mostrar ÚNICAMENTE la pestaña activa del Parte Diario */
+            #tab-despacho.tab-content.active {
+                display: block !important;
+            }
             
             .print-header {
                 display: flex;
@@ -530,7 +538,6 @@
 
             .container { max-width: 100%; margin: 0; padding: 0; }
             .card { box-shadow: none; border: none; padding: 0; margin: 0; }
-            .tab-content { display: block !important; }
             
             table { font-size: 12px; width: 100%; border-collapse: collapse; }
             table th, table td { border: 1px solid #000 !important; padding: 8px; color: black !important; }
