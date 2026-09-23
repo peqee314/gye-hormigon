@@ -2,7 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Optimizaciones específicas para iOS (Safari App Mode) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GyE Hormigón">
+    <link rel="apple-touch-icon" href="GyE - Isologo - División Hormigón.png">
+
     <title>GyE - División Hormigón | Gestión Online</title>
     
     <!-- Firebase SDKs -->
@@ -29,6 +36,7 @@
             color: var(--text-color);
             margin: 0;
             padding: 20px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -649,7 +657,7 @@
              <div class="card">
                   <h2>
                       <span id="table-title">Parte Diario de Despacho</span>
-                      <button class="btn-print" onclick="window.print()">🖨️ Imprimir Listado</button>
+                      <button class="btn-print" onclick="dispararImpresion()">🖨️ Imprimir Listado</button>
                   </h2>
                   
                   <div class="print-header">
@@ -1017,7 +1025,7 @@
              <div class="card">
                   <h2>
                       <span>Stock Actual de Materia Prima en Planta</span>
-                      <button type="button" class="btn-print non-porteria" onclick="window.print()">🖨️ Imprimir Stock</button>
+                      <button type="button" class="btn-print non-porteria" onclick="dispararImpresion()">🖨️ Imprimir Stock</button>
                   </h2>
                   <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
                       Control consolidado: (Stock Inicial + Ingresos Portería) - Consumos Plantista.
@@ -1156,6 +1164,13 @@
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('fecha').value = todayStr;
         filterDateInput.value = todayStr;
+
+        // Función segura para imprimir y generar PDF desde Safari / iOS
+        function dispararImpresion() {
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        }
 
         function cambiarPestaña(nombreTab, elementoBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -1617,10 +1632,8 @@
             const orderToDuplicate = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToDuplicate) return;
 
-            // Al duplicar dejamos el editId vacío para que se cree un nuevo registro
             editIdInput.value = '';
             
-            // Mantenemos la fecha actual o permitimos que elijas, aquí asignamos la actual
             document.getElementById('fecha').value = todayStr;
             document.getElementById('hora').value = orderToDuplicate.hora;
             
@@ -1628,7 +1641,6 @@
             clienteSelect.value = orderToDuplicate.cliente;
             esFacturadoCheckbox.checked = !!orderToDuplicate.facturado;
 
-            // Mantenemos todos los camiones y configuraciones intactas para que elijas qué cambiar
             camionesSecuenciaActual = orderToDuplicate.camiones ? [...orderToDuplicate.camiones] : [];
             renderizarSecuenciaUI();
 
