@@ -1106,7 +1106,7 @@
                           <input type="number" id="pres-validez" value="5" min="1" oninput="actualizarVistaPreviaPresupuesto()">
                       </div>
                       <div class="form-group form-group-full">
-                          <label>Observaciones o Condiciones Comerciales</label>
+                          <label>Observaciones o Condiciones Comerciales (Opcional)</label>
                           <textarea id="pres-obs" placeholder="Plazos de entrega, formas de pago, acopio..." oninput="actualizarVistaPreviaPresupuesto()"></textarea>
                       </div>
                   </div>
@@ -1119,27 +1119,38 @@
 
                   <!-- Vista Previa / Estética del Documento en Pantalla -->
                   <div id="presupuesto-preview-box" style="background: white; border: 2px solid var(--border-color); border-top: 10px solid var(--gye-yellow); padding: 30px; border-radius: 8px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                      
+                      <!-- ENCABEZADO MODIFICADO -->
                       <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
                           <div style="display: flex; align-items: center; gap: 12px;">
-                              <img id="preview-logo-img" src="gyehormigon.png" alt="GyE Logo" style="height: 45px; object-fit: contain;" onerror="this.style.display='none'">
+                              <img id="preview-logo-img" src="gyehormigon.png" alt="GyE Logo" style="height: 50px; object-fit: contain;" onerror="this.style.display='none'">
                               <div>
-                                  <h1 id="preview-div-title" style="margin: 0; font-size: 18px; color: var(--gye-black);">GYE DIVISIÓN HORMIGÓN</h1>
-                                  <p style="margin: 2px 0 0 0; font-size: 11px; color: #666;">Movimiento de Suelos / Materiales / Hormigón Elaborado</p>
+                                  <h1 style="margin: 0; font-size: 20px; color: var(--gye-black); font-weight: 700;">GyE S.R.L.</h1>
+                                  <p style="margin: 3px 0 0 0; font-size: 11px; color: #555; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                      <span>Mov. de Suelos / Materiales / Hormigón Elaborado</span>
+                                      <span>|</span>
+                                      <span>📞 / 💬 3496-400700</span>
+                                      <span>|</span>
+                                      <span>Esperanza - Santa Fe</span>
+                                  </p>
                               </div>
                           </div>
                           <div style="text-align: right;">
-                              <strong id="preview-num" style="font-size: 14px; color: var(--gye-red);">#PRE-0000</strong>
-                              <p style="margin: 2px 0 0 0; font-size: 11px; color: #666;">Fecha: <span id="preview-fecha">--/--/----</span></p>
+                              <strong id="preview-num" style="font-size: 14px; color: var(--gye-black); background: var(--gye-yellow); padding: 4px 8px; border-radius: 4px;">#PRE-0000</strong>
                           </div>
                       </div>
 
                       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 12px;">
                           <div><strong>Cliente:</strong> <span id="prev-cliente">---</span><br><strong>Localidad:</strong> <span id="prev-localidad">---</span></div>
-                          <div><strong>Obra:</strong> <span id="prev-obra">---</span><br><strong>Validez:</strong> <span id="prev-validez">---</span></div>
+                          <div>
+                              <strong>Obra:</strong> <span id="prev-obra">---</span><br>
+                              <strong>Emisión:</strong> <span id="preview-fecha">--/--/----</span><br>
+                              <strong>Validez:</strong> <span id="prev-validez">---</span> (Vence el <span id="prev-fecha-vencimiento">--/--/----</span>)
+                          </div>
                       </div>
 
                       <div id="prev-obs-container" style="display: none; background: #fffde7; padding: 10px; border-left: 3px solid var(--gye-yellow); margin-bottom: 15px; font-size: 12px;">
-                          <strong>Observaciones:</strong> <span id="prev-obs"></span>
+                          <strong>Observaciones específicas:</strong> <span id="prev-obs"></span>
                       </div>
 
                       <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px;">
@@ -1157,7 +1168,7 @@
                           </tbody>
                       </table>
 
-                      <div style="display: flex; justify-content: flex-end;">
+                      <div style="display: flex; justify-content: flex-end; margin-bottom: 25px;">
                           <div style="width: 250px; font-size: 13px;">
                               <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>Subtotal Neto:</span> <strong id="prev-neto">$0.00</strong></div>
                               <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>IVA (21%):</span> <strong id="prev-iva">$0.00</strong></div>
@@ -1166,6 +1177,18 @@
                               </div>
                           </div>
                       </div>
+
+                      <!-- OBSERVACIONES / TÉRMINOS LEGALES AL PIE -->
+                      <div style="font-size: 0.65rem; color: #616161; border-top: 1px solid var(--border-color); padding-top: 15px; column-count: 2; column-gap: 25px; text-align: justify; line-height: 1.4;">
+                          <p><strong>Descarga:</strong> Tiempo máximo permanencia en obra: 1 hora por mixer. Superado este plazo se facturará estadía. Peso aprox: 2.450 kg/m³.</p>
+                          <p><strong>Garantía:</strong> Caduca si se altera la mezcla o agrega agua. Cambios deben firmarse en remito. SIN EXCEPCIÓN.</p>
+                          <p><strong>Responsabilidad:</strong> Ingreso bajo responsabilidad del cliente. GyE SRL no responde por daños en veredas o estructuras.</p>
+                          <p><strong>Clima:</strong> En días de lluvia no se despacha sin autorización expresa del cliente, quien asume riesgos de calidad.</p>
+                          <p><strong>Logística:</strong> Pedidos "corte" sujetos a cargo adicional. Prohibido lavado de mixer en vía pública.</p>
+                          <p><strong>Aceptación:</strong> Reclamos solo con ensayos Norma IRAM 1666 en laboratorio certificado. Plazo: 45 días.</p>
+                          <p><strong>Curado:</strong> Es responsabilidad del cliente para asegurar resistencia y evitar fisuraciones.</p>
+                      </div>
+
                   </div>
 
                   <!-- Botones de Acción / Generación PDF -->
@@ -1787,19 +1810,15 @@
             });
         }
 
-        function cambiarDivisionPresupuesto() {
+       function cambiarDivisionPresupuesto() {
             const division = document.getElementById('presupuesto-division').value;
-            const tituloPreview = document.getElementById('preview-div-title');
             const logoImg = document.getElementById('preview-logo-img');
             
             if (division === 'hormigon') {
-                tituloPreview.textContent = "GYE DIVISIÓN HORMIGÓN";
                 logoImg.src = "gyehormigon.png";
             } else if (division === 'materiales') {
-                tituloPreview.textContent = "GYE DIVISIÓN MATERIALES";
                 logoImg.src = "gyemateriales.png";
             } else if (division === 'suelos') {
-                tituloPreview.textContent = "GYE DIVISIÓN SUELOS";
                 logoImg.src = "gyesuelos.png";
             }
         }
@@ -1822,8 +1841,17 @@
             document.getElementById('prev-cliente').textContent = document.getElementById('pres-cliente').value || "---";
             document.getElementById('prev-localidad').textContent = document.getElementById('pres-localidad').value || "---";
             document.getElementById('prev-obra').textContent = document.getElementById('pres-obra').value || "---";
-            document.getElementById('preview-fecha').textContent = new Date().toLocaleDateString('es-AR');
-            document.getElementById('prev-validez').textContent = (document.getElementById('pres-validez').value || 5) + " días";
+            
+            const hoy = new Date();
+            document.getElementById('preview-fecha').textContent = hoy.toLocaleDateString('es-AR');
+            
+            // Cálculo automático de la fecha de caducidad
+            const diasValidez = parseInt(document.getElementById('pres-validez').value) || 5;
+            document.getElementById('prev-validez').textContent = `${diasValidez} días`;
+            
+            const fechaVencimiento = new Date();
+            fechaVencimiento.setDate(hoy.getDate() + diasValidez);
+            document.getElementById('prev-fecha-vencimiento').textContent = fechaVencimiento.toLocaleDateString('es-AR');
 
             const obs = document.getElementById('pres-obs').value.trim();
             const obsBox = document.getElementById('prev-obs-container');
@@ -1898,17 +1926,17 @@
             const cliente = document.getElementById('pres-cliente').value || "Cliente";
             const total = document.getElementById('prev-total').textContent;
             const validez = document.getElementById('pres-validez').value;
+            const vencimiento = document.getElementById('prev-fecha-vencimiento').textContent;
             
             let mensaje = `🏗️ *PRESUPUESTO GYE S.R.L. (#PRE-${numeroPresupuestoActual})*\n`;
             mensaje += `👤 *Cliente:* ${cliente}\n`;
             mensaje += `💰 *TOTAL FINAL:* ${total} (IVA incluido)\n`;
-            mensaje += `⏳ *Validez:* ${validez} días\n\n`;
+            mensaje += `⏳ *Validez:* ${validez} días (Vence el ${vencimiento})\n\n`;
             mensaje += `Adjunto PDF con el detalle. ¡Quedamos a disposición!`;
 
             navigator.clipboard.writeText(mensaje);
             alert("¡Texto copiado para WhatsApp!");
         }
-
         function render() {
             let selectedDate = filterDateInput.value;
             if (currentUserRole === 'factura' && selectedDate >= todayStr) {
