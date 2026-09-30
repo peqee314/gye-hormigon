@@ -16,6 +16,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- Librerías para Generar PDF (html2canvas y jsPDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         :root {
             --gye-black: #111111;
@@ -522,7 +526,7 @@
 
         .print-header { display: none; }
 
-@media print {
+        @media print {
             body { background-color: white; padding: 0; color: black; }
             header, .dashboard-stats, .nav-tabs, .filter-section, .no-print { display: none !important; }
             
@@ -651,6 +655,7 @@
             <button type="button" class="tab-btn admin-only" onclick="cambiarPestaña('carga', this)">➕ Cargar / Editar Pedido</button>
             <button type="button" class="tab-btn non-porteria reportes-only" onclick="cambiarPestaña('reportes', this)">📊 Historial y Reportes</button>
             <button type="button" class="tab-btn porteria-tab-btn" onclick="cambiarPestaña('stock', this)">📦 Control de Stock</button>
+            <button type="button" class="tab-btn admin-only" onclick="cambiarPestaña('presupuestos', this)">📝 Hacer Presupuestos</button>
         </div>
 
         <!-- PESTAÑA 1: PARTE DIARIO DE DESPACHO -->
@@ -659,7 +664,6 @@
                   <h2>
                       <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                           <span id="table-title">Parte Diario de Despacho</span>
-                          <!-- Botón alternador visible solo para el Administrador -->
                           <button type="button" class="admin-only" id="btn-toggle-vista" onclick="alternarVistaAdmin()" style="background-color: #2980b9; padding: 4px 10px; font-size: 11px; width: auto;">👁️ Cambiar a Vista Plantista</button>
                       </div>
                       <button class="btn-print" onclick="dispararImpresion()">🖨️ Imprimir Listado</button>
@@ -857,7 +861,7 @@
              </div>
         </div>
 
-        <!-- PESTAÑA 3: HISTORIAL Y REPORTES (Restringido para Plantista) -->
+        <!-- PESTAÑA 3: HISTORIAL Y REPORTES -->
         <div id="tab-reportes" class="tab-content non-porteria reportes-only">
              <div class="card">
                   <h2>Historial de Cliente</h2>
@@ -891,9 +895,8 @@
              </div>
         </div>
 
-        <!-- PESTAÑA 4: CONTROL DE STOCK E INGRESOS / EGRESOS -->
+        <!-- PESTAÑA 4: CONTROL DE STOCK -->
         <div id="tab-stock" class="tab-content">
-             <!-- Panel exclusivo para el rol PORTERIA (Ingresos) -->
              <div class="card porteria-only">
                   <h2>Registrar Ingreso de Materia Prima (Portería)</h2>
                   <form id="stock-entry-form" onsubmit="registrarMovimientoStock(event, 'ingreso')">
@@ -937,7 +940,6 @@
                   </form>
              </div>
 
-             <!-- Panel exclusivo para el rol PLANTISTA (Descuento / Egresos de Stock) -->
              <div class="card plantista-consumption-only" style="background: #fdfefe; border: 1px solid #f39c12;">
                   <h2>📉 Registrar Consumo / Egreso de Stock (Plantista)</h2>
                   <p style="font-size: 13px; color: #555; margin-bottom: 12px;">
@@ -984,12 +986,8 @@
                   </form>
              </div>
 
-             <!-- Panel exclusivo Administrador para Definir Stock Inicial / Arqueo -->
              <div class="card admin-only" style="background: #eaf2f8; border: 1px solid #a9cce3;">
                   <h2>⚙️ Definir / Ajustar Stock Inicial (Punto Cero)</h2>
-                  <p style="font-size: 13px; color: #555; margin-bottom: 12px;">
-                      Ingresá aquí los saldos reales actuales que tenés computados en planta para establecer el punto de partida. A partir de este momento, se sumarán los ingresos y se restarán los consumos aportados por el equipo.
-                  </p>
                   <form id="stock-inicial-form" onsubmit="guardarStockInicial(event)">
                        <div class="form-grid-2col">
                            <div class="form-group">
@@ -1027,15 +1025,11 @@
                   </form>
              </div>
 
-             <!-- Panel General de Stock -->
              <div class="card">
                   <h2>
                       <span>Stock Actual de Materia Prima en Planta</span>
                       <button type="button" class="btn-print non-porteria" onclick="dispararImpresion()">🖨️ Imprimir Stock</button>
                   </h2>
-                  <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
-                      Control consolidado: (Stock Inicial + Ingresos Portería) - Consumos Plantista.
-                  </p>
                   <div style="overflow-x: auto;">
                       <table>
                           <thead>
@@ -1055,7 +1049,6 @@
                   </div>
              </div>
 
-             <!-- Historial reciente de movimientos para Admin -->
              <div class="card admin-only">
                   <h2>Últimos Movimientos de Stock Registrados</h2>
                   <div style="overflow-x: auto; max-height: 220px; overflow-y: auto;">
@@ -1074,6 +1067,111 @@
                               <tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Sin movimientos recientes.</td></tr>
                           </tbody>
                       </table>
+                  </div>
+             </div>
+        </div>
+
+        <!-- PESTAÑA 5: HACER PRESUPUESTOS (Exclusivo Administrador) -->
+        <div id="tab-presupuestos" class="tab-content admin-only">
+             <div class="card" style="border-top: 5px solid var(--gye-yellow);">
+                  <h2>
+                      <span>Generador de Presupuestos - GyE S.R.L.</span>
+                      <span id="out-num-presupuesto" style="font-size: 14px; background: var(--gye-black); color: white; padding: 4px 10px; border-radius: 4px;">#---</span>
+                  </h2>
+                  
+                  <div class="form-group" style="background: #fcfcfc; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 20px;">
+                      <label style="font-size: 14px; color: var(--secondary-color);">Seleccioná la División Comercial:</label>
+                      <select id="presupuesto-division" onchange="cambiarDivisionPresupuesto()" style="font-weight: bold; font-size: 14px; margin-top: 5px;">
+                          <option value="hormigon">Division Hormigón</option>
+                          <option value="materiales">Division Materiales</option>
+                          <option value="suelos">Division Suelos</option>
+                      </select>
+                  </div>
+
+                  <div class="form-grid-2col">
+                      <div class="form-group">
+                          <label>Cliente / Razón Social</label>
+                          <input type="text" id="pres-cliente" placeholder="Nombre del cliente..." oninput="actualizarVistaPreviaPresupuesto()">
+                      </div>
+                      <div class="form-group">
+                          <label>Localidad</label>
+                          <input type="text" id="pres-localidad" placeholder="Ej: Esperanza" oninput="actualizarVistaPreviaPresupuesto()">
+                      </div>
+                      <div class="form-group form-group-full">
+                          <label>Ubicación de Obra</label>
+                          <input type="text" id="pres-obra" placeholder="Dirección de la obra..." oninput="actualizarVistaPreviaPresupuesto()">
+                      </div>
+                      <div class="form-group">
+                          <label>Validez de la Oferta (Días)</label>
+                          <input type="number" id="pres-validez" value="5" min="1" oninput="actualizarVistaPreviaPresupuesto()">
+                      </div>
+                      <div class="form-group form-group-full">
+                          <label>Observaciones o Condiciones Comerciales</label>
+                          <textarea id="pres-obs" placeholder="Plazos de entrega, formas de pago, acopio..." oninput="actualizarVistaPreviaPresupuesto()"></textarea>
+                      </div>
+                  </div>
+
+                  <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+                  <label style="font-weight: bold; display: block; margin-bottom: 10px;">Ítems del Presupuesto</label>
+                  <div id="presupuesto-items-container"></div>
+                  <button type="button" class="btn-add-item" onclick="agregarFilaItemPresupuesto()" style="margin-bottom: 20px;">+ Agregar Ítem</button>
+
+                  <!-- Vista Previa / Estética del Documento en Pantalla -->
+                  <div id="presupuesto-preview-box" style="background: white; border: 2px solid var(--border-color); border-top: 10px solid var(--gye-yellow); padding: 30px; border-radius: 8px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+                          <div style="display: flex; align-items: center; gap: 12px;">
+                              <img id="preview-logo-img" src="gyehormigon.png" alt="GyE Logo" style="height: 45px; object-fit: contain;" onerror="this.style.display='none'">
+                              <div>
+                                  <h1 id="preview-div-title" style="margin: 0; font-size: 18px; color: var(--gye-black);">GYE DIVISIÓN HORMIGÓN</h1>
+                                  <p style="margin: 2px 0 0 0; font-size: 11px; color: #666;">Movimiento de Suelos / Materiales / Hormigón Elaborado</p>
+                              </div>
+                          </div>
+                          <div style="text-align: right;">
+                              <strong id="preview-num" style="font-size: 14px; color: var(--gye-red);">#PRE-0000</strong>
+                              <p style="margin: 2px 0 0 0; font-size: 11px; color: #666;">Fecha: <span id="preview-fecha">--/--/----</span></p>
+                          </div>
+                      </div>
+
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 12px;">
+                          <div><strong>Cliente:</strong> <span id="prev-cliente">---</span><br><strong>Localidad:</strong> <span id="prev-localidad">---</span></div>
+                          <div><strong>Obra:</strong> <span id="prev-obra">---</span><br><strong>Validez:</strong> <span id="prev-validez">---</span></div>
+                      </div>
+
+                      <div id="prev-obs-container" style="display: none; background: #fffde7; padding: 10px; border-left: 3px solid var(--gye-yellow); margin-bottom: 15px; font-size: 12px;">
+                          <strong>Observaciones:</strong> <span id="prev-obs"></span>
+                      </div>
+
+                      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px;">
+                          <thead>
+                              <tr style="background: #263238; color: white;">
+                                  <th style="padding: 8px; text-align: left;">Descripción</th>
+                                  <th style="padding: 8px; text-align: center;">Cant.</th>
+                                  <th style="padding: 8px; text-align: right;">Unit. Neto</th>
+                                  <th style="padding: 8px; text-align: right;">Unit. c/IVA</th>
+                                  <th style="padding: 8px; text-align: right;">Subtotal c/IVA</th>
+                              </tr>
+                          </thead>
+                          <tbody id="prev-table-body">
+                              <tr><td colspan="5" style="text-align: center; color: #777; padding: 10px;">Sin ítems cargados.</td></tr>
+                          </tbody>
+                      </table>
+
+                      <div style="display: flex; justify-content: flex-end;">
+                          <div style="width: 250px; font-size: 13px;">
+                              <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>Subtotal Neto:</span> <strong id="prev-neto">$0.00</strong></div>
+                              <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>IVA (21%):</span> <strong id="prev-iva">$0.00</strong></div>
+                              <div style="display: flex; justify-content: space-between; padding: 8px 10px; background: var(--gye-red); color: white; border-radius: 4px; margin-top: 5px; font-size: 14px;">
+                                  <span>TOTAL:</span> <strong id="prev-total">$0.00</strong>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Botones de Acción / Generación PDF -->
+                  <div style="display: flex; gap: 10px; margin-top: 20px;">
+                      <button type="button" class="btn-print" onclick="generarPdfPresupuesto()" style="background: #2980b9; flex: 1;">📥 Generar y Descargar PDF</button>
+                      <button type="button" class="btn-print" onclick="copiarTextoPresupuestoWhatsApp()" style="background: #27ae60; flex: 1;">💬 Copiar Texto para WhatsApp</button>
                   </div>
              </div>
         </div>
@@ -1134,7 +1232,8 @@
         let stockIniciales = {};
         let currentUserRole = 'admin'; 
         let camionesSecuenciaActual = []; 
-        let adminVistaPlantista = false; // Estado para alternar vista en Admin
+        let adminVistaPlantista = false;
+        let numeroPresupuestoActual = 1001;
 
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
@@ -1172,13 +1271,10 @@
         document.getElementById('fecha').value = todayStr;
         filterDateInput.value = todayStr;
 
-        // Función para alternar la vista del Administrador (Precios vs Plantista)
         function alternarVistaAdmin() {
             if (currentUserRole !== 'admin') return;
             adminVistaPlantista = !adminVistaPlantista;
-            
             const btnToggle = document.getElementById('btn-toggle-vista');
-            
             if (adminVistaPlantista) {
                 appBody.classList.add('operator-mode-temp');
                 btnToggle.textContent = "👁️ Ver con Precios (Facturación)";
@@ -1190,17 +1286,13 @@
             }
         }
 
-        // Función segura para imprimir y generar PDF desde Safari / iOS
         function dispararImpresion() {
-            setTimeout(() => {
-                window.print();
-            }, 100);
+            setTimeout(() => { window.print(); }, 100);
         }
 
         function cambiarPestaña(nombreTab, elementoBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
             document.getElementById(`tab-${nombreTab}`).classList.add('active');
             if (elementoBtn) elementoBtn.classList.add('active');
         }
@@ -1230,8 +1322,7 @@
 
         function configurarInterfazRol() {
             appBody.className = '';
-            adminVistaPlantista = false; // Resetear alternador al cambiar de perfil
-            
+            adminVistaPlantista = false;
             if (currentUserRole === 'plantista') {
                 userDisplayRole.textContent = "Perfil: Plantista / Operador";
                 appBody.classList.add('operator-mode');
@@ -1253,10 +1344,10 @@
                 appBody.classList.add('admin-mode');
                 cambiarPestaña('despacho', document.querySelector('.tab-btn'));
             }
-
             loginScreen.style.display = 'none';
             mainApp.style.display = 'block';
             escucharDatosNube();
+            obtenerSiguienteNumeroPresupuesto();
         }
 
         function cerrarSesion() {
@@ -1301,7 +1392,6 @@
                 secuenciaListaContainer.innerHTML = `<em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>`;
                 return;
             }
-
             camionesSecuenciaActual.forEach((camion, idx) => {
                 const div = document.createElement('div');
                 div.className = 'secuencia-item';
@@ -1316,25 +1406,19 @@
         function escucharDatosNube() {
             db.collection("pedidos_hormigon").onSnapshot((snapshot) => {
                 orders = [];
-                snapshot.forEach((doc) => {
-                    orders.push({ firebaseId: doc.id, ...doc.data() });
-                });
+                snapshot.forEach((doc) => { orders.push({ firebaseId: doc.id, ...doc.data() }); });
                 render();
             });
 
             db.collection("stock_movimientos").onSnapshot((snapshot) => {
                 stockMovimientos = [];
-                snapshot.forEach((doc) => {
-                    stockMovimientos.push({ firebaseId: doc.id, ...doc.data() });
-                });
+                snapshot.forEach((doc) => { stockMovimientos.push({ firebaseId: doc.id, ...doc.data() }); });
                 renderizarStockMovimientos();
             });
 
             db.collection("stock_iniciales").onSnapshot((snapshot) => {
                 stockIniciales = {};
-                snapshot.forEach((doc) => {
-                    stockIniciales[doc.id] = doc.data().cantidad || 0;
-                });
+                snapshot.forEach((doc) => { stockIniciales[doc.id] = doc.data().cantidad || 0; });
                 calcularStockActual();
             });
         }
@@ -1342,7 +1426,6 @@
         function registrarMovimientoStock(e, tipo) {
             e.preventDefault();
             let material, cantidad, obs;
-
             if (tipo === 'ingreso') {
                 material = document.getElementById('ingreso-material').value;
                 cantidad = parseFloat(document.getElementById('ingreso-cantidad').value) || 0;
@@ -1352,20 +1435,11 @@
                 cantidad = parseFloat(document.getElementById('egreso-cantidad').value) || 0;
                 obs = document.getElementById('egreso-obs').value.trim() || 'Consumo planta';
             }
-
             if (!material || cantidad <= 0) {
                 alert("Seleccioná un material válido e ingresá una cantidad mayor a 0.");
                 return;
             }
-
-            const movimientoData = {
-                fechaHora: new Date().toISOString(),
-                tipo: tipo, 
-                material: material,
-                cantidad: cantidad,
-                observacion: obs
-            };
-
+            const movimientoData = { fechaHora: new Date().toISOString(), tipo: tipo, material: material, cantidad: cantidad, observacion: obs };
             db.collection("stock_movimientos").add(movimientoData)
                 .then(() => {
                     if (tipo === 'ingreso') {
@@ -1380,33 +1454,20 @@
                         alert("¡Consumo registrado con éxito!");
                     }
                 })
-                .catch(error => {
-                    console.error("Error al registrar movimiento: ", error);
-                    alert("Error al guardar en la base de datos.");
-                });
+                .catch(error => { alert("Error al guardar en la base de datos."); });
         }
 
         function guardarStockInicial(e) {
             e.preventDefault();
             if (currentUserRole !== 'admin') return;
-
             const material = document.getElementById('inicial-material').value;
             const cantidad = parseFloat(document.getElementById('inicial-cantidad').value) || 0;
-
-            if (!material) {
-                alert("Seleccioná un material.");
-                return;
-            }
-
+            if (!material) { alert("Seleccioná un material."); return; }
             db.collection("stock_iniciales").doc(material).set({ cantidad: cantidad })
                 .then(() => {
                     document.getElementById('inicial-material').value = '';
                     document.getElementById('inicial-cantidad').value = '';
-                    alert(`¡Stock inicial de ${material} actualizado correctamente!`);
-                })
-                .catch(error => {
-                    console.error("Error al guardar stock inicial: ", error);
-                    alert("Error al guardar en la base de datos.");
+                    alert(`¡Stock inicial actualizado!`);
                 });
         }
 
@@ -1418,35 +1479,22 @@
         }
 
         function calcularStockActual() {
-            let totalesIngresos = {};
-            let totalesEgresos = {};
-
-            materialesConfig.forEach(m => {
-                totalesIngresos[m.nombre] = 0;
-                totalesEgresos[m.nombre] = 0;
-            });
-
+            let totalesIngresos = {}, totalesEgresos = {};
+            materialesConfig.forEach(m => { totalesIngresos[m.nombre] = 0; totalesEgresos[m.nombre] = 0; });
             stockMovimientos.forEach(item => {
-                if (item.tipo === 'ingreso') {
-                    if (totalesIngresos[item.material] !== undefined) {
-                        totalesIngresos[item.material] += parseFloat(item.cantidad) || 0;
-                    }
-                } else if (item.tipo === 'egreso') {
-                    if (totalesEgresos[item.material] !== undefined) {
-                        totalesEgresos[item.material] += parseFloat(item.cantidad) || 0;
-                    }
+                if (item.tipo === 'ingreso' && totalesIngresos[item.material] !== undefined) {
+                    totalesIngresos[item.material] += parseFloat(item.cantidad) || 0;
+                } else if (item.tipo === 'egreso' && totalesEgresos[item.material] !== undefined) {
+                    totalesEgresos[item.material] += parseFloat(item.cantidad) || 0;
                 }
             });
-
             let tbody = document.getElementById('stock-summary-table-body');
             tbody.innerHTML = '';
-
             materialesConfig.forEach(m => {
                 let inicial = stockIniciales[m.nombre] || 0;
                 let ingresado = totalesIngresos[m.nombre] || 0;
                 let consumido = totalesEgresos[m.nombre] || 0;
                 let actual = (inicial + ingresado) - consumido;
-
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${m.nombre}</strong></td>
@@ -1463,25 +1511,20 @@
         function renderizarStockMovimientos() {
             let listEl = document.getElementById('stock-history-list');
             if (!listEl) return;
-
             listEl.innerHTML = '';
             if (stockMovimientos.length === 0) {
                 listEl.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Sin movimientos recientes.</td></tr>`;
                 return;
             }
-
             const movsOrdenados = [...stockMovimientos].sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
-
             movsOrdenados.forEach(item => {
                 let fechaFormateada = item.fechaHora.replace('T', ' ').substring(0, 16);
                 let tipoBadge = item.tipo === 'ingreso' 
                     ? `<span style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">INGRESO</span>` 
                     : `<span style="background: #d35400; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">CONSUMO</span>`;
-
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${fechaFormateada}</td>
-                    <td>${tipoBadge}</td>
+                    <td>${fechaFormateada}</td><td>${tipoBadge}</td>
                     <td><strong>${item.material}</strong></td>
                     <td style="font-weight: bold; color: ${item.tipo === 'ingreso' ? '#27ae60' : '#d35400'};">${item.tipo === 'ingreso' ? '+' : '-'}${item.cantidad}</td>
                     <td>${item.observacion}</td>
@@ -1497,7 +1540,6 @@
             adicionalesOpciones.forEach(op => {
                 opcionesHtml += `<option value="${op}" ${nombre === op ? 'selected' : ''}>${op}</option>`;
             });
-
             const card = document.createElement('div');
             card.className = 'aditivo-card';
             card.innerHTML = `
@@ -1505,20 +1547,9 @@
                     <span>Subproducto / Servicio Adicional</span>
                     <button type="button" class="btn-remove-item" onclick="this.closest('.aditivo-card').remove()">X</button>
                 </div>
-                <div class="subproducto-field">
-                    <label>Descripción</label>
-                    <select class="aditivo-nombre">
-                        ${opcionesHtml}
-                    </select>
-                </div>
-                <div class="subproducto-field">
-                    <label>Cantidad Consumida</label>
-                    <input type="number" step="0.01" class="aditivo-cantidad" placeholder="Ej: 1" value="${cantidad}">
-                </div>
-                <div class="subproducto-field">
-                    <label>Precio Unitario ($ + IVA)</label>
-                    <input type="number" step="0.01" class="aditivo-precio" placeholder="Ej: 45000" value="${precio}">
-                </div>
+                <div class="subproducto-field"><label>Descripción</label><select class="aditivo-nombre">${opcionesHtml}</select></div>
+                <div class="subproducto-field"><label>Cantidad Consumida</label><input type="number" step="0.01" class="aditivo-cantidad" value="${cantidad}"></div>
+                <div class="subproducto-field"><label>Precio Unitario ($ + IVA)</label><input type="number" step="0.01" class="aditivo-precio" value="${precio}"></div>
             `;
             aditivosContainer.appendChild(card);
         }
@@ -1526,14 +1557,9 @@
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             if (currentUserRole !== 'admin') return;
-
             const idEditing = editIdInput.value;
             let clienteFinal = clientContainerInput.style.display === 'flex' ? clienteInput.value.trim() : clienteSelect.value;
-
-            if (!clienteFinal) {
-                alert("Por favor, seleccioná o ingresá un cliente.");
-                return;
-            }
+            if (!clienteFinal) { alert("Por favor, seleccioná o ingresá un cliente."); return; }
 
             const aditivosCards = document.querySelectorAll('.aditivo-card');
             let aditivosList = [];
@@ -1541,9 +1567,7 @@
                 let nombre = card.querySelector('.aditivo-nombre').value.trim();
                 let cantidad = parseFloat(card.querySelector('.aditivo-cantidad').value) || 0;
                 let precio = parseFloat(card.querySelector('.aditivo-precio').value) || 0;
-                if (nombre !== '') {
-                    aditivosList.push({ nombre, cantidad, precio });
-                }
+                if (nombre !== '') aditivosList.push({ nombre, cantidad, precio });
             });
 
             const orderData = {
@@ -1562,45 +1586,33 @@
             };
 
             if (idEditing) {
-                db.collection("pedidos_hormigon").doc(idEditing).update(orderData)
-                    .then(() => {
-                        resetForm();
-                        alert("¡Pedido actualizado correctamente!");
-                        cambiarPestaña('despacho', document.querySelector('.tab-btn'));
-                    })
-                    .catch(error => {
-                        console.error("Error al actualizar: ", error);
-                        alert("Hubo un error al guardar los cambios en Firebase.");
-                    });
+                db.collection("pedidos_hormigon").doc(idEditing).update(orderData).then(() => {
+                    resetForm();
+                    alert("¡Pedido actualizado!");
+                    cambiarPestaña('despacho', document.querySelector('.tab-btn'));
+                });
             } else {
                 orderData.id = Date.now();
-                db.collection("pedidos_hormigon").add(orderData)
-                    .then(() => {
-                        cancelarNuevoCliente();
-                        esFacturadoCheckbox.checked = false;
-                        camionesSecuenciaActual = [];
-                        renderizarSecuenciaUI();
-                        document.getElementById('tipoHormigon').value = '';
-                        document.getElementById('precioUnitario').value = '';
-                        condicionPagoSelect.value = 'normal';
-                        document.getElementById('cantidad').value = '';
-                        document.getElementById('observaciones').value = '';
-                        aditivosContainer.innerHTML = '';
-                        clienteSelect.focus();
-                        alert("¡Pedido guardado correctamente!");
-                        cambiarPestaña('despacho', document.querySelector('.tab-btn'));
-                    })
-                    .catch(error => {
-                        console.error("Error al guardar: ", error);
-                        alert("Hubo un error al registrar el pedido en Firebase.");
-                    });
+                db.collection("pedidos_hormigon").add(orderData).then(() => {
+                    cancelarNuevoCliente();
+                    esFacturadoCheckbox.checked = false;
+                    camionesSecuenciaActual = [];
+                    renderizarSecuenciaUI();
+                    document.getElementById('tipoHormigon').value = '';
+                    document.getElementById('precioUnitario').value = '';
+                    condicionPagoSelect.value = 'normal';
+                    document.getElementById('cantidad').value = '';
+                    document.getElementById('observaciones').value = '';
+                    aditivosContainer.innerHTML = '';
+                    alert("¡Pedido guardado!");
+                    cambiarPestaña('despacho', document.querySelector('.tab-btn'));
+                });
             }
         });
 
         function editOrder(firebaseId) {
             const orderToEdit = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToEdit) return;
-
             if (currentUserRole === 'plantista') {
                 let nuevoVolumen = prompt("Modificar Volumen / m³ del pedido:", orderToEdit.cantidad);
                 if (nuevoVolumen !== null && nuevoVolumen.trim() !== "") {
@@ -1608,7 +1620,6 @@
                 }
                 return;
             }
-
             if (currentUserRole === 'factura') {
                 let nuevoPrecioH = prompt(`Precio Unitario Hormigón (${orderToEdit.tipoHormigon}) [+ IVA]:`, orderToEdit.precioUnitario || 0);
                 if (nuevoPrecioH !== null && !isNaN(nuevoPrecioH)) {
@@ -1616,85 +1627,62 @@
                 }
                 return;
             }
-
             editIdInput.value = orderToEdit.firebaseId;
             document.getElementById('fecha').value = orderToEdit.fecha;
             document.getElementById('hora').value = orderToEdit.hora;
-            
             cancelarNuevoCliente();
             clienteSelect.value = orderToEdit.cliente;
             esFacturadoCheckbox.checked = !!orderToEdit.facturado;
-
             camionesSecuenciaActual = orderToEdit.camiones ? [...orderToEdit.camiones] : [];
             renderizarSecuenciaUI();
-
             document.getElementById('tipoHormigon').value = orderToEdit.tipoHormigon;
             condicionPagoSelect.value = orderToEdit.condicionPago || 'normal';
             document.getElementById('precioUnitario').value = orderToEdit.precioUnitario || '';
             document.getElementById('ubicacion').value = orderToEdit.ubicacion;
             document.getElementById('cantidad').value = orderToEdit.cantidad;
             document.getElementById('observaciones').value = orderToEdit.observaciones;
-
             aditivosContainer.innerHTML = '';
             if (orderToEdit.aditivos && Array.isArray(orderToEdit.aditivos)) {
                 orderToEdit.aditivos.forEach(item => {
-                    if (typeof item === 'string') {
-                        agregarFilaAditivo(item, 1, 0); 
-                    } else {
-                        agregarFilaAditivo(item.nombre, item.cantidad, item.precio);
-                    }
+                    if (typeof item === 'string') agregarFilaAditivo(item, 1, 0);
+                    else agregarFilaAditivo(item.nombre, item.cantidad, item.precio);
                 });
             }
-
             formTitle.textContent = "Editar Turno / Pedido";
             btnSubmit.textContent = "Actualizar Pedido";
             btnCancel.style.display = "block";
-
-            const botonesTabs = document.querySelectorAll('.tab-btn');
-            cambiarPestaña('carga', botonesTabs[1]);
+            cambiarPestaña('carga', document.querySelectorAll('.tab-btn')[1]);
         }
 
         function duplicateOrder(firebaseId) {
             if (currentUserRole !== 'admin') return;
             const orderToDuplicate = orders.find(order => order.firebaseId === firebaseId);
             if (!orderToDuplicate) return;
-
             editIdInput.value = '';
-            
             document.getElementById('fecha').value = todayStr;
             document.getElementById('hora').value = orderToDuplicate.hora;
-            
             cancelarNuevoCliente();
             clienteSelect.value = orderToDuplicate.cliente;
             esFacturadoCheckbox.checked = !!orderToDuplicate.facturado;
-
             camionesSecuenciaActual = orderToDuplicate.camiones ? [...orderToDuplicate.camiones] : [];
             renderizarSecuenciaUI();
-
             document.getElementById('tipoHormigon').value = orderToDuplicate.tipoHormigon;
             condicionPagoSelect.value = orderToDuplicate.condicionPago || 'normal';
             document.getElementById('precioUnitario').value = orderToDuplicate.precioUnitario || '';
             document.getElementById('ubicacion').value = orderToDuplicate.ubicacion;
             document.getElementById('cantidad').value = orderToDuplicate.cantidad;
             document.getElementById('observaciones').value = orderToDuplicate.observaciones;
-
             aditivosContainer.innerHTML = '';
             if (orderToDuplicate.aditivos && Array.isArray(orderToDuplicate.aditivos)) {
                 orderToDuplicate.aditivos.forEach(item => {
-                    if (typeof item === 'string') {
-                        agregarFilaAditivo(item, 1, 0); 
-                    } else {
-                        agregarFilaAditivo(item.nombre, item.cantidad, item.precio);
-                    }
+                    if (typeof item === 'string') agregarFilaAditivo(item, 1, 0);
+                    else agregarFilaAditivo(item.nombre, item.cantidad, item.precio);
                 });
             }
-
             formTitle.textContent = "Duplicar Turno / Pedido";
             btnSubmit.textContent = "Guardar como Nuevo Pedido";
             btnCancel.style.display = "block";
-
-            const botonesTabs = document.querySelectorAll('.tab-btn');
-            cambiarPestaña('carga', botonesTabs[1]);
+            cambiarPestaña('carga', document.querySelectorAll('.tab-btn')[1]);
         }
 
         function resetForm() {
@@ -1722,262 +1710,217 @@
         function actualizarListasClientes() {
             if (currentUserRole !== 'admin') return;
             const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
-            
             clienteSelect.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
             clientesSet.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
-                clienteSelect.appendChild(opt);
+                const opt = document.createElement('option'); opt.value = c; opt.textContent = c; clienteSelect.appendChild(opt);
             });
-
             selectClientHistory.innerHTML = `<option value="">-- Seleccionar Cliente --</option>`;
             clientesSet.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
-                selectClientHistory.appendChild(opt);
+                const opt = document.createElement('option'); opt.value = c; opt.textContent = c; selectClientHistory.appendChild(opt);
             });
         }
 
         function verHistorialCliente() {
             const clienteBuscado = selectClientHistory.value;
-            if (!clienteBuscado) {
-                clientHistoryResults.innerHTML = '';
-                return;
-            }
-
-            const pedidosCliente = orders
-                .filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase())
-                .sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-            if (pedidosCliente.length === 0) {
-                clientHistoryResults.innerHTML = `<em>No hay registros para este cliente.</em>`;
-                return;
-            }
-
-            let totalMetrosCuadrados = 0; 
-            let totalDineroCliente = 0;    
-
+            if (!clienteBuscado) { clientHistoryResults.innerHTML = ''; return; }
+            const pedidosCliente = orders.filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase()).sort((a, b) => b.fecha.localeCompare(a.fecha));
+            if (pedidosCliente.length === 0) { clientHistoryResults.innerHTML = `<em>No hay registros.</em>`; return; }
+            
+            let totalMetrosCuadrados = 0, totalDineroCliente = 0;
             let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
-            html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong>`;
-            html += `<button type="button" class="btn-print no-print" onclick="imprimirHistorialCliente('${clienteBuscado}')" style="padding: 4px 10px; font-size: 12px; width: auto;">🖨️ Imprimir Historial</button>`;
-            html += `</div>`;
-
+            html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong></div>`;
             html += `<div style="max-height: 220px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido ($ + IVA)</th><th>Acción</th></tr></thead><tbody>`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th><th>Acción</th></tr></thead><tbody>`;
             
             pedidosCliente.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
-                totalMetrosCuadrados += vol; 
-
+                totalMetrosCuadrados += vol;
                 let precioU = p.precioUnitario || 0;
                 let subHormigon = vol * precioU;
-                
                 let subExtras = 0;
                 if (p.aditivos && Array.isArray(p.aditivos)) {
                     p.aditivos.forEach(item => {
-                        if (typeof item === 'object') {
-                            subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-                        }
+                        if (typeof item === 'object') subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
                     });
                 }
-
                 let cond = p.condicionPago || 'normal';
                 let totalItem = (cond === 'normal') ? (subHormigon + subExtras) : 0;
-                
-                if (cond === 'normal') {
-                    totalDineroCliente += totalItem; 
-                }
-
-                let condTexto = cond === 'compensacion' ? 'Trueque/Compensación' : (cond === 'acopio' ? 'Pagado en Acopio' : 'Cta. Cte.');
-
-                html += `<tr>
-                    <td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td>
-                    <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td>
-                    <td><strong>$${totalItem.toLocaleString()}</strong></td>
-                    <td><button type="button" class="btn-duplicate" onclick="duplicateOrder('${p.firebaseId}')" style="padding: 3px 6px; font-size: 10px;">Duplicar</button></td>
-                </tr>`;
+                if (cond === 'normal') totalDineroCliente += totalItem;
+                let condTexto = cond === 'compensacion' ? 'Trueque' : (cond === 'acopio' ? 'Acopio' : 'Cta. Cte.');
+                html += `<tr><td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td><td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td><td><strong>$${totalItem.toLocaleString()}</strong></td><td><button type="button" class="btn-duplicate" onclick="duplicateOrder('${p.firebaseId}')" style="padding: 3px 6px; font-size: 10px;">Duplicar</button></td></tr>`;
             });
             html += `</tbody></table></div>`;
-
-            html += `<div style="margin-top: 10px; padding: 8px 12px; background: #ebf5fb; border: 1px solid #a9cce3; border-radius: 4px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; flex-wrap: wrap; gap: 10px;">
-                <div>Total Volumen Histórico: <span style="color: var(--secondary-color);">${totalMetrosCuadrados.toFixed(2)} m³</span></div>
-                <div style="color: #27ae60;">Total Facturación Histórica (Cta. Cte. + IVA): $<span id="print-total-dinero">${totalDineroCliente.toLocaleString()}</span> (+ IVA)</div>
-            </div>`;
-
             clientHistoryResults.innerHTML = html;
-        }
-
-        function imprimirHistorialCliente(clienteNombre) {
-            const contenidoTabla = clientHistoryResults.innerHTML;
-            const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
-            
-            ventanaImpresion.document.write(`
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Historial de ${clienteNombre}</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
-                        h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
-                        div[style*="max-height"] { max-height: none !important; overflow: visible !important; border: none !important; padding: 0 !important; background: transparent !important; }
-                        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-                        table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
-                        table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        .no-print, button { display: none !important; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Historial de Cliente: ${clienteNombre} (+ IVA)</h2>
-                    ${contenidoTabla}
-                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
-                </body>
-                </html>
-            `);
-            ventanaImpresion.document.close();
         }
 
         function calcularRangoFechas() {
             const startStr = document.getElementById('range-start-date').value;
             const endStr = document.getElementById('range-end-date').value;
             const resultsEl = document.getElementById('range-results');
-
-            if (!startStr || !endStr) {
-                alert("Por favor, seleccioná ambas fechas (Desde y Hasta).");
-                return;
-            }
-
-            if (startStr > endStr) {
-                alert("La fecha 'Desde' no puede ser posterior a la fecha 'Hasta'.");
-                return;
-            }
-
-            const pedidosRango = orders
-                .filter(o => o.fecha >= startStr && o.fecha <= endStr)
-                .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora));
-
-            let totalPedidos = pedidosRango.length;
-            let totalMetros = 0;
-            let totalDinero = 0;
-
+            if (!startStr || !endStr) { alert("Seleccioná ambas fechas."); return; }
+            const pedidosRango = orders.filter(o => o.fecha >= startStr && o.fecha <= endStr).sort((a, b) => a.fecha.localeCompare(b.fecha));
+            if (pedidosRango.length === 0) { resultsEl.innerHTML = `<em>No se encontraron pedidos en el rango.</em>`; return; }
+            
+            let totalMetros = 0, totalDinero = 0;
             pedidosRango.forEach(p => {
                 let vol = parseFloat(p.cantidad) || 0;
-                let precioU = p.precioUnitario || 0;
                 totalMetros += vol;
-                let subHormigon = vol * precioU;
-                let subExtras = 0;
-
-                if (p.aditivos && Array.isArray(p.aditivos)) {
-                    p.aditivos.forEach(item => {
-                        if (typeof item === 'object') {
-                            subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-                        }
-                    });
-                }
-
-                let cond = p.condicionPago || 'normal';
-                if (cond === 'normal') {
-                    totalDinero += (subHormigon + subExtras);
-                }
-            });
-
-            if (totalPedidos === 0) {
-                resultsEl.innerHTML = `<em>No se encontraron pedidos en el rango de fechas seleccionado.</em>`;
-                return;
-            }
-
-            let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
-            html += `<strong style="font-size: 14px; color: var(--primary-color);">Reporte de ${startStr} al ${endStr}</strong>`;
-            html += `<button type="button" class="btn-print no-print" onclick="imprimirReporteRango('${startStr}', '${endStr}')" style="padding: 4px 10px; font-size: 12px; width: auto;">🖨️ Imprimir Reporte</button>`;
-            html += `</div>`;
-
-            html += `<div id="range-summary-box" style="padding: 10px; background: #fff; border: 1px solid #d7bde2; border-radius: 4px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; text-align: center; margin-bottom: 10px;">`;
-            html += `<div>Total Pedidos: <br><strong style="font-size: 15px; color: #8e44ad;">${totalPedidos}</strong></div>`;
-            html += `<div>Volumen Total: <br><strong style="font-size: 15px; color: var(--secondary-color);">${totalMetros.toFixed(2)} m³</strong></div>`;
-            html += `<div>Facturación (Cta. Cte. + IVA): <br><strong style="font-size: 15px; color: #27ae60;">$${totalDinero.toLocaleString()} (+ IVA)</strong></div>`;
-            html += `</div>`;
-
-            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #d7bde2; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido ($ + IVA)</th></tr></thead><tbody>`;
-
-            pedidosRango.forEach(p => {
-                let vol = parseFloat(p.cantidad) || 0;
-                let precioU = p.precioUnitario || 0;
-                let subH = vol * precioU;
+                let subH = vol * (p.precioUnitario || 0);
                 let subE = 0;
-                if (p.aditivos && Array.isArray(p.aditivos)) {
-                    p.aditivos.forEach(item => {
-                        if (typeof item === 'object') {
-                            subE += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-                        }
-                    });
-                }
-                let cond = p.condicionPago || 'normal';
-                let totalItem = (cond === 'normal') ? (subH + subE) : 0;
-                let condTexto = cond === 'compensacion' ? 'Trueque/Compensación' : (cond === 'acopio' ? 'Pagado en Acopio' : 'Cta. Cte.');
-
-                html += `<tr>
-                    <td>${p.fecha}</td><td>${p.hora}</td><td>${p.cliente}</td><td>${p.ubicacion}</td>
-                    <td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td>
-                    <td><strong>$${totalItem.toLocaleString()}</strong></td>
-                </tr>`;
+                if (p.aditivos) p.aditivos.forEach(i => { if(typeof i==='object') subE += (i.cantidad||0)*(i.precio||0); });
+                if ((p.condicionPago || 'normal') === 'normal') totalDinero += (subH + subE);
             });
-
-            html += `</tbody></table></div>`;
-            resultsEl.innerHTML = html;
+            resultsEl.innerHTML = `<strong>Total Volumen: ${totalMetros.toFixed(2)} m³ | Facturación: $${totalDinero.toLocaleString()} (+ IVA)</strong>`;
         }
 
-        function imprimirReporteRango(startStr, endStr) {
-            const rangeResultsHtml = document.getElementById('range-results').innerHTML;
-            const ventanaImpresion = window.open('', '_blank', 'width=900,height=650');
+        /* --- LÓGICA DE PRESUPUESTOS Y CONTADOR EN FIREBASE --- */
+        function obtenerSiguienteNumeroPresupuesto() {
+            db.collection("configuracion").doc("contador_presupuestos").get().then((doc) => {
+                if (doc.exists) {
+                    numeroPresupuestoActual = doc.data().ultimoNumero || 1001;
+                } else {
+                    db.collection("configuracion").doc("contador_presupuestos").set({ ultimoNumero: 1001 });
+                    numeroPresupuestoActual = 1001;
+                }
+                document.getElementById('out-num-presupuesto').textContent = `#PRE-${numeroPresupuestoActual}`;
+                document.getElementById('preview-num').textContent = `#PRE-${numeroPresupuestoActual}`;
+            });
+        }
+
+        function cambiarDivisionPresupuesto() {
+            const division = document.getElementById('presupuesto-division').value;
+            const tituloPreview = document.getElementById('preview-div-title');
+            const logoImg = document.getElementById('preview-logo-img');
             
-            ventanaImpresion.document.write(`
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Reporte de Rango (${startStr} al ${endStr})</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
-                        h2 { border-bottom: 2px solid #1a252f; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color: #1a252f; }
-                        #range-summary-box { border: 1px solid #000 !important; background: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-                        table th, table td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
-                        table th { background-color: #f8f9fa; color: #1a252f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        .no-print, button { display: none !important; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Reporte de Rango de Fechas (+ IVA): Desde ${startStr} Hasta ${endStr}</h2>
-                    ${rangeResultsHtml}
-                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
-                </body>
-                </html>
-            `);
-            ventanaImpresion.document.close();
+            if (division === 'hormigon') {
+                tituloPreview.textContent = "GYE DIVISIÓN HORMIGÓN";
+                logoImg.src = "gyehormigon.png";
+            } else if (division === 'materiales') {
+                tituloPreview.textContent = "GYE DIVISIÓN MATERIALES";
+                logoImg.src = "gyemateriales.png";
+            } else if (division === 'suelos') {
+                tituloPreview.textContent = "GYE DIVISIÓN SUELOS";
+                logoImg.src = "gyesuelos.png";
+            }
+        }
+
+        function agregarFilaItemPresupuesto(desc = '', qty = '', price = '') {
+            const container = document.getElementById('presupuesto-items-container');
+            const row = document.createElement('div');
+            row.className = 'item-edit-row';
+            row.style.cssText = "display: grid; grid-template-columns: 3fr 1fr 1.2fr 40px; gap: 10px; margin-bottom: 8px;";
+            row.innerHTML = `
+                <input type="text" class="p-desc" placeholder="Descripción del ítem..." value="${desc}" oninput="actualizarVistaPreviaPresupuesto()">
+                <input type="number" class="p-qty" placeholder="Cant." value="${qty}" oninput="actualizarVistaPreviaPresupuesto()">
+                <input type="number" step="0.01" class="p-price" placeholder="Neto Unit. $" value="${price}" oninput="actualizarVistaPreviaPresupuesto()">
+                <button type="button" class="btn-remove-item" onclick="this.closest('.item-edit-row').remove(); actualizarVistaPreviaPresupuesto()">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function actualizarVistaPreviaPresupuesto() {
+            document.getElementById('prev-cliente').textContent = document.getElementById('pres-cliente').value || "---";
+            document.getElementById('prev-localidad').textContent = document.getElementById('pres-localidad').value || "---";
+            document.getElementById('prev-obra').textContent = document.getElementById('pres-obra').value || "---";
+            document.getElementById('preview-fecha').textContent = new Date().toLocaleDateString('es-AR');
+            document.getElementById('prev-validez').textContent = (document.getElementById('pres-validez').value || 5) + " días";
+
+            const obs = document.getElementById('pres-obs').value.trim();
+            const obsBox = document.getElementById('prev-obs-container');
+            if (obs) {
+                document.getElementById('prev-obs').textContent = obs;
+                obsBox.style.display = "block";
+            } else {
+                obsBox.style.display = "none";
+            }
+
+            const descs = document.querySelectorAll('.p-desc');
+            const qtys = document.querySelectorAll('.p-qty');
+            const prices = document.querySelectorAll('.p-price');
+            
+            let html = "", netoTotal = 0;
+            for (let i = 0; i < descs.length; i++) {
+                let d = descs[i].value;
+                let q = parseFloat(qtys[i].value) || 0;
+                let p = parseFloat(prices[i].value) || 0;
+                if (d) {
+                    let subNeto = q * p;
+                    netoTotal += subNeto;
+                    html += `
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${d}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${q}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${p.toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${(p * 1.21).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">$${(subNeto * 1.21).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
+                        </tr>
+                    `;
+                }
+            }
+            if (html === "") html = `<tr><td colspan="5" style="text-align: center; color: #777; padding: 10px;">Sin ítems cargados.</td></tr>`;
+
+            document.getElementById('prev-table-body').innerHTML = html;
+            let ivaTotal = netoTotal * 0.21;
+            let totalFinal = netoTotal + ivaTotal;
+
+            document.getElementById('prev-neto').textContent = `$${netoTotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('prev-iva').textContent = `$${ivaTotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('prev-total').textContent = `$${totalFinal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+        }
+
+        async function generarPdfPresupuesto() {
+            const element = document.getElementById('presupuesto-preview-box');
+            try {
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'JPEG', 0, 10, pdfWidth, pdfHeight);
+                let clienteNombre = document.getElementById('pres-cliente').value.trim() || "Cliente";
+                clienteNombre = clienteNombre.replace(/\s+/g, '_');
+                
+                pdf.save(`Presupuesto_${numeroPresupuestoActual}_${clienteNombre}.pdf`);
+
+                // Incrementar y actualizar número en Firestore
+                numeroPresupuestoActual++;
+                db.collection("configuracion").doc("contador_presupuestos").set({ ultimoNumero: numeroPresupuestoActual })
+                  .then(() => { obtenerSiguienteNumeroPresupuesto(); });
+            } catch (e) {
+                console.error(e);
+                alert("Error al generar el PDF.");
+            }
+        }
+
+        function copiarTextoPresupuestoWhatsApp() {
+            const cliente = document.getElementById('pres-cliente').value || "Cliente";
+            const total = document.getElementById('prev-total').textContent;
+            const validez = document.getElementById('pres-validez').value;
+            
+            let mensaje = `🏗️ *PRESUPUESTO GYE S.R.L. (#PRE-${numeroPresupuestoActual})*\n`;
+            mensaje += `👤 *Cliente:* ${cliente}\n`;
+            mensaje += `💰 *TOTAL FINAL:* ${total} (IVA incluido)\n`;
+            mensaje += `⏳ *Validez:* ${validez} días\n\n`;
+            mensaje += `Adjunto PDF con el detalle. ¡Quedamos a disposición!`;
+
+            navigator.clipboard.writeText(mensaje);
+            alert("¡Texto copiado para WhatsApp!");
         }
 
         function render() {
             let selectedDate = filterDateInput.value;
-
             if (currentUserRole === 'factura' && selectedDate >= todayStr) {
-                let ayer = new Date();
-                ayer.setDate(ayer.getDate() - 1);
+                let ayer = new Date(); ayer.setDate(ayer.getDate() - 1);
                 selectedDate = ayer.toISOString().split('T')[0];
                 filterDateInput.value = selectedDate;
             }
-
             printDateTitle.textContent = selectedDate;
             ordersList.innerHTML = '';
 
-            const filteredOrders = orders
-                .filter(order => order.fecha === selectedDate)
-                .sort((a, b) => a.hora.localeCompare(b.hora));
-
-            let dailySum = 0;
-            let dailyMoneySum = 0;
+            const filteredOrders = orders.filter(order => order.fecha === selectedDate).sort((a, b) => a.hora.localeCompare(b.hora));
+            let dailySum = 0, dailyMoneySum = 0;
 
             if (filteredOrders.length === 0) {
                 ordersList.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #7f8c8d;">No hay pedidos cargados para esta fecha.</td></tr>`;
@@ -1985,59 +1928,26 @@
                 filteredOrders.forEach(order => {
                     let numVal = parseFloat(order.cantidad);
                     if (!isNaN(numVal)) dailySum += numVal;
-
                     let precioU = order.precioUnitario || 0;
                     let subHormigon = (!isNaN(numVal) ? numVal : 0) * precioU;
-                    
                     let subExtras = 0;
-                    let extrasDetalleHtml = '';
                     if (order.aditivos && Array.isArray(order.aditivos)) {
                         order.aditivos.forEach(item => {
-                            if (typeof item === 'object') {
-                                let c = parseFloat(item.cantidad) || 0;
-                                let p = parseFloat(item.precio) || 0;
-                                subExtras += c * p;
-                                extrasDetalleHtml += `<br><span style="color: #2980b9; font-size: 11px;">+ ${item.nombre} (${c} x $${p.toLocaleString()})</span>`;
-                            } else {
-                                extrasDetalleHtml += `<br><span style="color: #2980b9; font-size: 11px;">+ ${item}</span>`;
-                            }
+                            if (typeof item === 'object') subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
                         });
                     }
-
                     let condicion = order.condicionPago || 'normal';
                     let totalItem = 0;
                     if (condicion === 'normal') {
                         totalItem = subHormigon + subExtras;
                         dailyMoneySum += totalItem;
                     }
-
-                    let facturaBadge = order.facturado 
-                        ? `<span class="print-badge-factura" style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">FACTURADO</span>` 
-                        : `<span class="print-badge-factura" style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">SIN FACTURA</span>`;
-
-                    let condicionBadge = '';
-                    if (condicion === 'compensacion') {
-                        condicionBadge = `<br><span style="background: #e67e22; color: white; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; display: inline-block; margin-top:2px;">COMPENSACIÓN / TRUEQUE</span>`;
-                    } else if (condicion === 'acopio') {
-                        condicionBadge = `<br><span style="background: #8e44ad; color: white; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; display: inline-block; margin-top:2px;">PAGADO EN ACOPIO</span>`;
-                    }
-
-                    let camionesBadges = `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
-                    if (order.camiones && order.camiones.length > 0) {
-                        camionesBadges = order.camiones.map((c, idx) => `<span class="print-badge-camion" style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ');
-                    }
-
-                    let observacionesHtml = `<span class="print-obs" style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</span>`;
+                    let facturaBadge = order.facturado ? `<span class="print-badge-factura" style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">FACTURADO</span>` : `<span class="print-badge-factura" style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">SIN FACTURA</span>`;
+                    let camionesBadges = (order.camiones && order.camiones.length > 0) ? order.camiones.map((c, idx) => `<span class="print-badge-camion" style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ') : `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
 
                     let accionesHtml = '';
                     if (currentUserRole === 'admin') {
-                        accionesHtml = `
-                            <div class="action-buttons">
-                                <button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button>
-                                <button class="btn-duplicate" onclick="duplicateOrder('${order.firebaseId}')">Duplicar</button>
-                                <button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button>
-                            </div>
-                        `;
+                        accionesHtml = `<div class="action-buttons"><button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button><button class="btn-duplicate" onclick="duplicateOrder('${order.firebaseId}')">Duplicar</button><button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button></div>`;
                     } else if (currentUserRole === 'factura') {
                         accionesHtml = `<button class="btn-edit" onclick="editOrder('${order.firebaseId}')" style="background-color: #27ae60;">Asignar Precio</button>`;
                     } else {
@@ -2049,45 +1959,40 @@
                         <td><strong>${order.hora}</strong></td>
                         <td style="text-align: center;">${camionesBadges}</td>
                         <td>${order.cliente}<br>${facturaBadge}</td>
-                        <td><strong>${order.tipoHormigon}</strong>${extrasDetalleHtml}</td>
+                        <td><strong>${order.tipoHormigon}</strong></td>
                         <td>${order.ubicacion}</td>
                         <td><strong>${order.cantidad}</strong></td>
-                        <td class="factura-only">H°: $${precioU.toLocaleString()} + IVA ${condicionBadge}</td>
-                        <td class="factura-only" style="font-weight: bold; color: ${condicion === 'normal' ? '#27ae60' : '#7f8c8d'};">
-                            ${condicion === 'normal' ? '$' + totalItem.toLocaleString() + ' + IVA' : 'N/A (Compensado)'}
-                        </td>
-                        <td>${observacionesHtml}</td>
+                        <td class="factura-only">H°: $${precioU.toLocaleString()} + IVA</td>
+                        <td class="factura-only" style="font-weight: bold; color: ${condicion === 'normal' ? '#27ae60' : '#7f8c8d'};">${condicion === 'normal' ? '$' + totalItem.toLocaleString() + ' + IVA' : 'Compensado'}</td>
+                        <td><span class="print-obs" style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</span></td>
                         <td class="col-acciones">${accionesHtml}</td>
                     `;
                     ordersList.appendChild(row);
                 });
             }
-
             dailyTotalEl.textContent = dailySum.toFixed(2);
             dailyMoneyTotalEl.textContent = dailyMoneySum.toLocaleString();
 
             if (currentUserRole === 'admin') {
                 const currentMonth = selectedDate.substring(0, 7);
-                let monthlySum = 0;
-                let monthlyCount = 0;
-
+                let monthlySum = 0, monthlyCount = 0;
                 orders.forEach(order => {
-                    let numVal = parseFloat(order.cantidad);
-                    if (!isNaN(numVal) && order.fecha.startsWith(currentMonth)) monthlySum += numVal;
+                    if (!isNaN(parseFloat(order.cantidad)) && order.fecha.startsWith(currentMonth)) monthlySum += parseFloat(order.cantidad);
                     if (order.fecha.startsWith(currentMonth)) monthlyCount++;
                 });
-
                 monthlyTotalEl.textContent = monthlySum.toFixed(2);
                 monthlyCountEl.textContent = monthlyCount;
                 actualizarListasClientes();
                 if (selectClientHistory.value) verHistorialCliente();
-                if (document.getElementById('range-start-date').value && document.getElementById('range-end-date').value) {
-                    calcularRangoFechas();
-                }
             }
         }
 
         filterDateInput.addEventListener('change', render);
+
+        // Inicializar la primera fila de ítems de presupuesto al cargar
+        setTimeout(() => {
+            agregarFilaItemPresupuesto();
+        }, 800);
     </script>
 </body>
 </html>
