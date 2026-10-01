@@ -1959,17 +1959,30 @@
                     let precioU = order.precioUnitario || 0;
                     let subHormigon = (!isNaN(numVal) ? numVal : 0) * precioU;
                     let subExtras = 0;
-                    if (order.aditivos && Array.isArray(order.aditivos)) {
+                    
+                    // HTML para listar los subproductos / aditivos debajo del hormigón
+                    let aditivosHtml = '';
+                    if (order.aditivos && Array.isArray(order.aditivos) && order.aditivos.length > 0) {
+                        aditivosHtml = '<div style="margin-top: 4px; font-size: 11px; color: #d35400;"><strong>Extras:</strong><ul style="margin: 0; padding-left: 15px;">';
                         order.aditivos.forEach(item => {
-                            if (typeof item === 'object') subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+                            if (typeof item === 'object') {
+                                let costoItem = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+                                subExtras += costoItem;
+                                aditivosHtml += `<li>${item.nombre} (Cant: ${item.cantidad}) ${item.precio > 0 ? '- $' + costoItem.toLocaleString() + ' + IVA' : ''}</li>`;
+                            } else if (typeof item === 'string') {
+                                aditivosHtml += `<li>${item}</li>`;
+                            }
                         });
+                        aditivosHtml += '</ul></div>';
                     }
+
                     let condicion = order.condicionPago || 'normal';
                     let totalItem = 0;
                     if (condicion === 'normal') {
                         totalItem = subHormigon + subExtras;
                         dailyMoneySum += totalItem;
                     }
+                    
                     let facturaBadge = order.facturado ? `<span class="print-badge-factura" style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">FACTURADO</span>` : `<span class="print-badge-factura" style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">SIN FACTURA</span>`;
                     let camionesBadges = (order.camiones && order.camiones.length > 0) ? order.camiones.map((c, idx) => `<span class="print-badge-camion" style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ') : `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
 
@@ -1987,10 +2000,10 @@
                         <td><strong>${order.hora}</strong></td>
                         <td style="text-align: center;">${camionesBadges}</td>
                         <td>${order.cliente}<br>${facturaBadge}</td>
-                        <td><strong>${order.tipoHormigon}</strong></td>
+                        <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
                         <td>${order.ubicacion}</td>
                         <td><strong>${order.cantidad}</strong></td>
-                        <td class="factura-only">H°: $${precioU.toLocaleString()} + IVA</td>
+                        <td class="factura-only">H°: $${precioU.toLocaleString()} + IVA ${subExtras > 0 ? '<br><small>Extras: $' + subExtras.toLocaleString() + '</small>' : ''}</td>
                         <td class="factura-only" style="font-weight: bold; color: ${condicion === 'normal' ? '#27ae60' : '#7f8c8d'};">${condicion === 'normal' ? '$' + totalItem.toLocaleString() + ' + IVA' : 'Compensado'}</td>
                         <td><span class="print-obs" style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</span></td>
                         <td class="col-acciones">${accionesHtml}</td>
@@ -2014,7 +2027,6 @@
                 if (selectClientHistory.value) verHistorialCliente();
             }
         }
-
         filterDateInput.addEventListener('change', render);
 
         // Inicializar la primera fila de ítems de presupuesto al cargar
