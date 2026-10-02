@@ -540,6 +540,19 @@
 
         .print-header { display: none; }
 
+        /* Estilos A4 exactos para la vista previa de Presupuestos */
+        #presupuesto-preview-box {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-top: 10px solid var(--gye-yellow);
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
         @media print {
             body { background-color: white; padding: 0; color: black; }
             header, .dashboard-stats, .nav-tabs, .filter-section, .no-print { display: none !important; }
@@ -547,6 +560,10 @@
             .tab-content { display: none !important; }
             
             #tab-despacho.tab-content.active {
+                display: block !important;
+            }
+
+            #tab-presupuestos.tab-content.active {
                 display: block !important;
             }
             
@@ -595,6 +612,21 @@
             }
 
             .col-acciones, .action-buttons { display: none !important; }
+
+            /* Impresión limpia para el módulo de Presupuestos (A4 nativo) */
+            #tab-presupuestos header, #tab-presupuestos .form-group, #tab-presupuestos hr, 
+            #tab-presupuestos .btn-add-item, #tab-presupuestos div[style*="display: flex; gap: 10px"] {
+                display: none !important;
+            }
+
+            #presupuesto-preview-box {
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                min-height: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
         }
     </style>
 </head>
@@ -971,7 +1003,7 @@
                            </div>
                            <div class="form-group form-group-full">
                                <button type="submit" style="background-color: #27ae60;">Registrar Ingreso en Planta</button>
-                          </div>
+                           </div>
                       </div>
                  </form>
              </div>
@@ -1153,10 +1185,10 @@
                  <div id="presupuesto-items-container"></div>
                  <button type="button" class="btn-add-item" onclick="agregarFilaItemPresupuesto()" style="margin-bottom: 20px;">+ Agregar Ítem</button>
 
-                 <!-- Vista Previa / Estética del Documento en Pantalla -->
-                 <div id="presupuesto-preview-box" style="background: white; border: 2px solid var(--border-color); border-top: 10px solid var(--gye-yellow); padding: 30px; border-radius: 8px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                 <!-- Vista Previa / Estética del Documento en Formato A4 -->
+                 <div id="presupuesto-preview-box">
                      
-                     <!-- ENCABEZADO MODIFICADO -->
+                     <!-- ENCABEZADO -->
                      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
                          <div style="display: flex; align-items: center; gap: 12px;">
                              <img id="preview-logo-img" src="gyehormigon.png" alt="GyE Logo" style="height: 50px; object-fit: contain;" onerror="this.style.display='none'">
@@ -1843,7 +1875,6 @@
             });
             html += `</tbody></table></div>`;
             
-            // Cuadro resumen con el total calculado
             html += `<div style="margin-top: 10px; background: #d4efdf; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; color: #145a32;">`;
             html += `<span>Volumen Total: ${totalMetrosCuadrados.toFixed(2)} m³</span>`;
             html += `<span>Total a Cobrar (+ IVA): $${totalDineroCliente.toLocaleString()}</span>`;
