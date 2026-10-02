@@ -885,10 +885,27 @@
              <div class="card">
                  <h2>Historial de Cliente</h2>
                  <div class="client-history-box">
-                     <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente para ver todos sus pedidos históricos:</label>
-                     <select id="select-client-history" onchange="verHistorialCliente()">
-                         <option value="">-- Seleccionar Cliente --</option>
-                     </select>
+                     <div class="form-group" style="margin-bottom: 10px;">
+                         <label for="select-client-history" style="font-weight:600; font-size:14px;">Seleccioná un cliente:</label>
+                         <select id="select-client-history" onchange="verHistorialCliente()">
+                             <option value="">-- Seleccionar Cliente --</option>
+                         </select>
+                     </div>
+                     
+                     <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap;">
+                         <div class="form-group" style="flex: 1; margin: 0; min-width: 130px;">
+                              <label for="client-start-date">Desde (Opcional):</label>
+                              <input type="date" id="client-start-date" onchange="verHistorialCliente()">
+                         </div>
+                         <div class="form-group" style="flex: 1; margin: 0; min-width: 130px;">
+                              <label for="client-end-date">Hasta (Opcional):</label>
+                              <input type="date" id="client-end-date" onchange="verHistorialCliente()">
+                         </div>
+                         <div>
+                              <button type="button" class="btn-print" onclick="limpiarFiltroFechasCliente()" style="padding: 9px 12px; font-size: 12px; background-color: #7f8c8d;">Ver Historial Completo</button>
+                         </div>
+                     </div>
+
                      <div id="client-history-results" style="margin-top: 10px; font-size: 13px;"></div>
                  </div>
              </div>
@@ -1772,16 +1789,39 @@
             });
         }
 
+        function limpiarFiltroFechasCliente() {
+            document.getElementById('client-start-date').value = '';
+            document.getElementById('client-end-date').value = '';
+            verHistorialCliente();
+        }
+
         function verHistorialCliente() {
             const clienteBuscado = selectClientHistory.value;
             if (!clienteBuscado) { clientHistoryResults.innerHTML = ''; return; }
-            const pedidosCliente = orders.filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase()).sort((a, b) => b.fecha.localeCompare(a.fecha));
-            if (pedidosCliente.length === 0) { clientHistoryResults.innerHTML = `<em>No hay registros.</em>`; return; }
+            
+            const fechaDesde = document.getElementById('client-start-date').value;
+            const fechaHasta = document.getElementById('client-end-date').value;
+
+            let pedidosCliente = orders.filter(o => o.cliente && o.cliente.toLowerCase() === clienteBuscado.toLowerCase());
+
+            if (fechaDesde) {
+                pedidosCliente = pedidosCliente.filter(o => o.fecha >= fechaDesde);
+            }
+            if (fechaHasta) {
+                pedidosCliente = pedidosCliente.filter(o => o.fecha <= fechaHasta);
+            }
+
+            pedidosCliente.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+            if (pedidosCliente.length === 0) { 
+                clientHistoryResults.innerHTML = `<em>No hay registros en el período seleccionado.</em>`; 
+                return; 
+            }
             
             let totalMetrosCuadrados = 0, totalDineroCliente = 0;
             let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
             html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong></div>`;
-            html += `<div style="max-height: 220px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
+            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
             html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th><th>Acción</th></tr></thead><tbody>`;
             
             pedidosCliente.forEach(p => {
@@ -1802,6 +1842,13 @@
                 html += `<tr><td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td><td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td><td><strong>$${totalItem.toLocaleString()}</strong></td><td><button type="button" class="btn-duplicate" onclick="duplicateOrder('${p.firebaseId}')" style="padding: 3px 6px; font-size: 10px;">Duplicar</button></td></tr>`;
             });
             html += `</tbody></table></div>`;
+            
+            // Cuadro resumen con el total calculado
+            html += `<div style="margin-top: 10px; background: #d4efdf; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; color: #145a32;">`;
+            html += `<span>Volumen Total: ${totalMetrosCuadrados.toFixed(2)} m³</span>`;
+            html += `<span>Total a Cobrar (+ IVA): $${totalDineroCliente.toLocaleString()}</span>`;
+            html += `</div>`;
+
             clientHistoryResults.innerHTML = html;
         }
 
