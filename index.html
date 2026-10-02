@@ -524,6 +524,20 @@
             margin-bottom: 15px;
         }
 
+        /* Estilo para pedidos marcados como entregados */
+        tr.pedido-entregado {
+            background-color: #e8f8f5 !important;
+            opacity: 0.75;
+        }
+        tr.pedido-entregado td {
+            color: #555 !important;
+            text-decoration: line-through;
+        }
+        tr.pedido-entregado .print-badge-camion,
+        tr.pedido-entregado .print-badge-factura {
+            opacity: 0.8;
+        }
+
         .print-header { display: none; }
 
         @media print {
@@ -754,24 +768,24 @@
                              </div>
 
                              <div class="form-group">
-                                 <label>Secuencia Salida Camiones</label>
-                                 <div class="secuencia-camiones-box">
-                                     <div class="secuencia-add-row">
-                                         <select id="select-nuevo-camion" style="flex:1;">
-                                             <option value="">-- Unidad --</option>
-                                             <optgroup label="Mixers">
-                                                 <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
-                                             </optgroup>
-                                             <optgroup label="Bombas">
-                                                 <option value="M1">M1 (Bomba)</option>
-                                             </optgroup>
-                                         </select>
-                                         <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
-                                     </div>
-                                     <div class="secuencia-lista" id="secuencia-lista-container">
-                                         <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
-                                     </div>
-                                 </div>
+                                  <label>Secuencia Salida Camiones</label>
+                                  <div class="secuencia-camiones-box">
+                                      <div class="secuencia-add-row">
+                                          <select id="select-nuevo-camion" style="flex:1;">
+                                              <option value="">-- Unidad --</option>
+                                              <optgroup label="Mixers">
+                                                  <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
+                                              </optgroup>
+                                              <optgroup label="Bombas">
+                                                  <option value="M1">M1 (Bomba)</option>
+                                              </optgroup>
+                                          </select>
+                                          <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
+                                      </div>
+                                      <div class="secuencia-lista" id="secuencia-lista-container">
+                                          <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
+                                      </div>
+                                  </div>
                              </div>
                          </div>
 
@@ -842,24 +856,24 @@
                          </div>
 
                          <div class="form-group form-group-full">
-                             <label>Subproductos, Aditivos o Servicios Extra</label>
-                             <div class="aditivos-container" id="aditivos-container"></div>
-                             <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Subproducto / Servicio</button>
+                              <label>Subproductos, Aditivos o Servicios Extra</label>
+                              <div class="aditivos-container" id="aditivos-container"></div>
+                              <button type="button" class="btn-add-item" onclick="agregarFilaAditivo()">+ Agregar Subproducto / Servicio</button>
                          </div>
 
                          <div class="form-group">
-                             <label for="ubicacion">Ubicación / Obra</label>
-                             <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
+                              <label for="ubicacion">Ubicación / Obra</label>
+                              <input type="text" id="ubicacion" placeholder="Ej: San Martín 1234" required>
                          </div>
 
                          <div class="form-group">
-                             <label for="observaciones">Observaciones</label>
-                             <textarea id="observaciones" placeholder="Ej: Descarga lenta..."></textarea>
+                              <label for="observaciones">Observaciones</label>
+                              <textarea id="observaciones" placeholder="Ej: Descarga lenta..."></textarea>
                          </div>
 
                          <div class="form-group form-group-full">
-                             <button type="submit" id="btn-submit">Guardar Pedido</button>
-                             <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
+                              <button type="submit" id="btn-submit">Guardar Pedido</button>
+                              <button type="button" id="btn-cancel" class="btn-cancel" style="display:none;" onclick="resetForm()">Cancelar Edición</button>
                          </div>
                      </div>
                  </form>
@@ -884,15 +898,15 @@
                  <div class="client-history-box" style="background: #f4ecf7; border-color: #d7bde2;">
                      <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap;">
                          <div class="form-group" style="flex: 1; margin: 0; min-width: 140px;">
-                             <label for="range-start-date">Desde:</label>
-                             <input type="date" id="range-start-date">
+                              <label for="range-start-date">Desde:</label>
+                              <input type="date" id="range-start-date">
                          </div>
                          <div class="form-group" style="flex: 1; margin: 0; min-width: 140px;">
-                             <label for="range-end-date">Hasta:</label>
-                             <input type="date" id="range-end-date">
+                              <label for="range-end-date">Hasta:</label>
+                              <input type="date" id="range-end-date">
                          </div>
                          <div>
-                             <button type="button" class="btn-print" onclick="calcularRangoFechas()" style="padding: 9px 15px; font-size: 13px; background-color: #8e44ad;">Calcular Rango</button>
+                              <button type="button" class="btn-print" onclick="calcularRangoFechas()" style="padding: 9px 15px; font-size: 13px; background-color: #8e44ad;">Calcular Rango</button>
                          </div>
                      </div>
                      <div id="range-results" style="margin-top: 10px; font-size: 13px;"></div>
@@ -940,7 +954,7 @@
                            </div>
                            <div class="form-group form-group-full">
                                <button type="submit" style="background-color: #27ae60;">Registrar Ingreso en Planta</button>
-                           </div>
+                          </div>
                       </div>
                  </form>
              </div>
@@ -1351,7 +1365,7 @@
             if (currentUserRole === 'plantista') {
                 userDisplayRole.textContent = "Perfil: Plantista / Operador";
                 appBody.classList.add('operator-mode');
-                cambiarPestaña('stock', document.querySelector('.porteria-tab-btn'));
+                cambiarPestaña('despacho', document.querySelector('.tab-btn'));
             } else if (currentUserRole === 'porteria') {
                 userDisplayRole.textContent = "Perfil: Portería / Báscula";
                 appBody.classList.add('porteria-mode');
@@ -1608,7 +1622,8 @@
                 aditivos: aditivosList,
                 ubicacion: document.getElementById('ubicacion').value.trim(),
                 cantidad: document.getElementById('cantidad').value.trim(),
-                observaciones: document.getElementById('observaciones').value.trim()
+                observaciones: document.getElementById('observaciones').value.trim(),
+                entregado: false
             };
 
             if (idEditing) {
@@ -1733,6 +1748,17 @@
             }
         }
 
+        function toggleEntregado(firebaseId) {
+            const orden = orders.find(o => o.firebaseId === firebaseId);
+            if (!orden) return;
+            const nuevoEstado = !orden.entregado;
+            db.collection("pedidos_hormigon").doc(firebaseId).update({
+                entregado: nuevoEstado
+            }).catch(error => {
+                console.error("Error al actualizar estado de entrega:", error);
+            });
+        }
+
         function actualizarListasClientes() {
             if (currentUserRole !== 'admin') return;
             const clientesSet = [...new Set(orders.map(o => o.cliente))].filter(Boolean).sort();
@@ -1848,7 +1874,6 @@
             const hoy = new Date();
             document.getElementById('preview-fecha').textContent = hoy.toLocaleDateString('es-AR');
             
-            // Cálculo automático de la fecha de caducidad
             const diasValidez = parseInt(document.getElementById('pres-validez').value) || 5;
             document.getElementById('prev-validez').textContent = `${diasValidez} días`;
             
@@ -1915,7 +1940,6 @@
                 
                 pdf.save(`Presupuesto_${numeroPresupuestoActual}_${clienteNombre}.pdf`);
 
-                // Incrementar y actualizar número en Firestore
                 numeroPresupuestoActual++;
                 db.collection("configuracion").doc("contador_presupuestos").set({ ultimoNumero: numeroPresupuestoActual })
                   .then(() => { obtenerSiguienteNumeroPresupuesto(); });
@@ -1940,6 +1964,7 @@
             navigator.clipboard.writeText(mensaje);
             alert("¡Texto copiado para WhatsApp!");
         }
+
         function render() {
             let selectedDate = filterDateInput.value;
             if (currentUserRole === 'factura' && selectedDate >= todayStr) {
@@ -1963,7 +1988,6 @@
                     let subHormigon = (!isNaN(numVal) ? numVal : 0) * precioU;
                     let subExtras = 0;
                     
-                    // HTML para listar los subproductos / aditivos debajo del hormigón
                     let aditivosHtml = '';
                     if (order.aditivos && Array.isArray(order.aditivos) && order.aditivos.length > 0) {
                         aditivosHtml = '<div style="margin-top: 4px; font-size: 11px; color: #d35400;"><strong>Extras:</strong><ul style="margin: 0; padding-left: 15px;">';
@@ -1990,8 +2014,12 @@
                     let camionesBadges = (order.camiones && order.camiones.length > 0) ? order.camiones.map((c, idx) => `<span class="print-badge-camion" style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ') : `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
 
                     let accionesHtml = '';
+                    let btnEntregadoHtml = `<button type="button" class="btn-edit" onclick="toggleEntregado('${order.firebaseId}')" style="background-color: ${order.entregado ? '#7f8c8d' : '#27ae60'}; padding: 4px 8px; font-size: 11px; margin-bottom: 3px;">${order.entregado ? '↩️ Deshacer' : '✅ Entregado'}</button>`;
+
                     if (currentUserRole === 'admin') {
-                        accionesHtml = `<div class="action-buttons"><button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button><button class="btn-duplicate" onclick="duplicateOrder('${order.firebaseId}')">Duplicar</button><button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button></div>`;
+                        accionesHtml = `<div class="action-buttons">${btnEntregadoHtml}<button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button><button class="btn-duplicate" onclick="duplicateOrder('${order.firebaseId}')">Duplicar</button><button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button></div>`;
+                    } else if (currentUserRole === 'plantista') {
+                        accionesHtml = `<div class="action-buttons">${btnEntregadoHtml}<button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar Vol.</button></div>`;
                     } else if (currentUserRole === 'factura') {
                         accionesHtml = `<button class="btn-edit" onclick="editOrder('${order.firebaseId}')" style="background-color: #27ae60;">Asignar Precio</button>`;
                     } else {
@@ -1999,6 +2027,10 @@
                     }
 
                     const row = document.createElement('tr');
+                    if (order.entregado) {
+                        row.className = 'pedido-entregado';
+                    }
+
                     row.innerHTML = `
                         <td><strong>${order.hora}</strong></td>
                         <td style="text-align: center;">${camionesBadges}</td>
