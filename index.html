@@ -773,117 +773,117 @@
                      <div class="form-grid-2col">
                          <div>
                              <div class="form-group">
-                                  <label for="fecha">Fecha</label>
-                                  <input type="date" id="fecha" required>
+                                 <label for="fecha">Fecha</label>
+                                 <input type="date" id="fecha" required>
                              </div>
                              <div class="form-group">
-                                  <label for="hora">Hora del Turno</label>
-                                  <input type="time" id="hora" required>
+                                 <label for="hora">Hora del Turno</label>
+                                 <input type="time" id="hora" required>
                              </div>
                              <div class="form-group">
-                                  <label for="cliente">Cliente</label>
-                                  <div class="client-input-row" id="client-container-select">
-                                      <select id="cliente-select" style="flex:1;">
-                                           <option value="">-- Seleccionar Cliente --</option>
-                                      </select>
-                                      <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
-                                  </div>
-                                  <div class="client-input-row" id="client-container-input" style="display: none;">
-                                      <input type="text" id="cliente-input" placeholder="Nombre nuevo..." style="flex:1;">
-                                      <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
-                                  </div>
-                                  
-                                  <div class="factura-checkbox-container">
-                                      <input type="checkbox" id="es-facturado">
-                                      <label for="es-facturado">Pedido con Factura</label>
-                                  </div>
+                                 <label for="cliente">Cliente</label>
+                                 <div class="client-input-row" id="client-container-select">
+                                     <select id="cliente-select" style="flex:1;">
+                                         <option value="">-- Seleccionar Cliente --</option>
+                                     </select>
+                                     <button type="button" class="btn-new-client" onclick="habilitarNuevoCliente()">+ Nuevo</button>
+                                 </div>
+                                 <div class="client-input-row" id="client-container-input" style="display: none;">
+                                     <input type="text" id="cliente-input" placeholder="Nombre nuevo..." style="flex:1;">
+                                     <button type="button" class="btn-new-client" style="background-color: #7f8c8d;" onclick="cancelarNuevoCliente()">Volver</button>
+                                 </div>
+                                 
+                                 <div class="factura-checkbox-container">
+                                     <input type="checkbox" id="es-facturado">
+                                     <label for="es-facturado">Pedido con Factura</label>
+                                 </div>
                              </div>
 
                              <div class="form-group">
-                                  <label>Secuencia Salida Camiones</label>
-                                  <div class="secuencia-camiones-box">
-                                      <div class="secuencia-add-row">
-                                          <select id="select-nuevo-camion" style="flex:1;">
-                                              <option value="">-- Unidad --</option>
-                                              <optgroup label="Mixers">
-                                                  <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
-                                              </optgroup>
-                                              <optgroup label="Bombas">
-                                                  <option value="M1">M1 (Bomba)</option>
-                                              </optgroup>
-                                          </select>
-                                          <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
-                                      </div>
-                                      <div class="secuencia-lista" id="secuencia-lista-container">
-                                          <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
-                                      </div>
-                                  </div>
+                                 <label>Secuencia Salida Camiones</label>
+                                 <div class="secuencia-camiones-box">
+                                     <div class="secuencia-add-row">
+                                         <select id="select-nuevo-camion" style="flex:1;">
+                                             <option value="">-- Unidad --</option>
+                                             <optgroup label="Mixers">
+                                                 <option value="M2">M2</option><option value="M4">M4</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option>
+                                             </optgroup>
+                                             <optgroup label="Bombas">
+                                                 <option value="M1">M1 (Bomba)</option>
+                                             </optgroup>
+                                         </select>
+                                         <button type="button" class="btn-add-secuencia" onclick="agregarCamionSecuencia()">+ Agregar</button>
+                                     </div>
+                                     <div class="secuencia-lista" id="secuencia-lista-container">
+                                         <em style="color: #7f8c8d; font-size: 11px;" id="secuencia-vacia-msg">Sin camiones asignados.</em>
+                                     </div>
+                                 </div>
                              </div>
                          </div>
 
                          <div>
                              <div class="form-group">
-                                  <label for="tipoHormigon">Tipo de H° (Principal)</label>
-                                  <select id="tipoHormigon" required>
-                                      <option value="">-- Seleccionar Tipo de H° --</option>
-                                      <optgroup label="Piedra Granítica 1/2">
-                                           <option value="H8 P.G 1/2">H8 P.G 1/2</option>
-                                           <option value="H13 P.G 1/2">H13 P.G 1/2</option>
-                                           <option value="H17 P.G 1/2">H17 P.G 1/2</option>
-                                           <option value="H21 P.G 1/2">H21 P.G 1/2</option>
-                                           <option value="H25 P.G 1/2">H25 P.G 1/2</option>
-                                           <option value="H30 P.G 1/2">H30 P.G 1/2</option>
-                                      </optgroup>
-                                      <optgroup label="Piedra Granítica 1/3">
-                                           <option value="H8 P.G 1/3">H8 P.G 1/3</option>
-                                           <option value="H13 P.G 1/3">H13 P.G 1/3</option>
-                                           <option value="H17 P.G 1/3">H17 P.G 1/3</option>
-                                           <option value="H21 P.G 1/3">H21 P.G 1/3</option>
-                                           <option value="H25 P.G 1/3">H25 P.G 1/3</option>
-                                           <option value="H30 P.G 1/3">H30 P.G 1/3</option>
-                                           <option value="H35 P.G 1/3">H35 P.G 1/3</option>
-                                      </optgroup>
-                                      <optgroup label="Bombeable">
-                                           <option value="H17 Bombeable">H17 Bombeable</option>
-                                           <option value="H21 Bombeable">H21 Bombeable</option>
-                                           <option value="H25 Bombeable">H25 Bombeable</option>
-                                           <option value="H30 Bombeable">H30 Bombeable</option>
-                                           <option value="RDC Bombeable">RDC Bombeable</option>
-                                           <option value="H°Liv c/Telgopor Bombeable">H°Liv c/Telgopor Bombeable</option>
-                                      </optgroup>
-                                      <optgroup label="Canto Rodado">
-                                           <option value="H8 Canto Rodado">H8 Canto Rodado</option>
-                                           <option value="H13 Canto Rodado">H13 Canto Rodado</option>
-                                           <option value="H17 Canto Rodado">H17 Canto Rodado</option>
-                                           <option value="H21 Canto Rodado">H21 Canto Rodado</option>
-                                           <option value="H25 Canto Rodado">H25 Canto Rodado</option>
-                                           <option value="H30 Canto Rodado">H30 Canto Rodado</option>
-                                      </optgroup>
-                                      <optgroup label="RDC / Livianos">
-                                           <option value="Alquiler Bomba">Bomba sola</option>
-                                           <option value="RDC100">RDC100</option>
-                                           <option value="RDC150">RDC150</option>
-                                           <option value="RDC200">RDC200</option>
-                                           <option value="RDC300">RDC300</option>
-                                           <option value="H° Liv c/telgopor">H° Liv c/telgopor</option>
-                                      </optgroup>
-                                  </select>
+                                 <label for="tipoHormigon">Tipo de H° (Principal)</label>
+                                 <select id="tipoHormigon" required>
+                                     <option value="">-- Seleccionar Tipo de H° --</option>
+                                     <optgroup label="Piedra Granítica 1/2">
+                                          <option value="H8 P.G 1/2">H8 P.G 1/2</option>
+                                          <option value="H13 P.G 1/2">H13 P.G 1/2</option>
+                                          <option value="H17 P.G 1/2">H17 P.G 1/2</option>
+                                          <option value="H21 P.G 1/2">H21 P.G 1/2</option>
+                                          <option value="H25 P.G 1/2">H25 P.G 1/2</option>
+                                          <option value="H30 P.G 1/2">H30 P.G 1/2</option>
+                                     </optgroup>
+                                     <optgroup label="Piedra Granítica 1/3">
+                                          <option value="H8 P.G 1/3">H8 P.G 1/3</option>
+                                          <option value="H13 P.G 1/3">H13 P.G 1/3</option>
+                                          <option value="H17 P.G 1/3">H17 P.G 1/3</option>
+                                          <option value="H21 P.G 1/3">H21 P.G 1/3</option>
+                                          <option value="H25 P.G 1/3">H25 P.G 1/3</option>
+                                          <option value="H30 P.G 1/3">H30 P.G 1/3</option>
+                                          <option value="H35 P.G 1/3">H35 P.G 1/3</option>
+                                     </optgroup>
+                                     <optgroup label="Bombeable">
+                                          <option value="H17 Bombeable">H17 Bombeable</option>
+                                          <option value="H21 Bombeable">H21 Bombeable</option>
+                                          <option value="H25 Bombeable">H25 Bombeable</option>
+                                          <option value="H30 Bombeable">H30 Bombeable</option>
+                                          <option value="RDC Bombeable">RDC Bombeable</option>
+                                          <option value="H°Liv c/Telgopor Bombeable">H°Liv c/Telgopor Bombeable</option>
+                                     </optgroup>
+                                     <optgroup label="Canto Rodado">
+                                          <option value="H8 Canto Rodado">H8 Canto Rodado</option>
+                                          <option value="H13 Canto Rodado">H13 Canto Rodado</option>
+                                          <option value="H17 Canto Rodado">H17 Canto Rodado</option>
+                                          <option value="H21 Canto Rodado">H21 Canto Rodado</option>
+                                          <option value="H25 Canto Rodado">H25 Canto Rodado</option>
+                                          <option value="H30 Canto Rodado">H30 Canto Rodado</option>
+                                     </optgroup>
+                                     <optgroup label="RDC / Livianos">
+                                          <option value="Alquiler Bomba">Bomba sola</option>
+                                          <option value="RDC100">RDC100</option>
+                                          <option value="RDC150">RDC150</option>
+                                          <option value="RDC200">RDC200</option>
+                                          <option value="RDC300">RDC300</option>
+                                          <option value="H° Liv c/telgopor">H° Liv c/telgopor</option>
+                                     </optgroup>
+                                 </select>
                              </div>
                              <div class="form-group">
-                                  <label for="cantidad">Volumen / m³</label>
-                                  <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
+                                 <label for="cantidad">Volumen / m³</label>
+                                 <input type="text" id="cantidad" placeholder="Ej: 7.5" required>
                              </div>
                              <div class="form-group">
-                                  <label for="precioUnitario">Precio Referencia H° ($/m³ + IVA)</label>
-                                  <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
+                                 <label for="precioUnitario">Precio Referencia H° ($/m³ + IVA)</label>
+                                 <input type="number" step="0.01" id="precioUnitario" placeholder="Ej: 85000">
                              </div>
                              <div class="form-group">
-                                  <label for="condicionPago">Condición de Pago / Comercial</label>
-                                  <select id="condicionPago">
-                                      <option value="normal">Cobro Normal / Cta. Cte.</option>
-                                      <option value="compensacion">Compensación / Trueque</option>
-                                      <option value="acopio">Pagado en Acopio</option>
-                                  </select>
+                                 <label for="condicionPago">Condición de Pago / Comercial</label>
+                                 <select id="condicionPago">
+                                     <option value="normal">Cobro Normal / Cta. Cte.</option>
+                                     <option value="compensacion">Compensación / Trueque</option>
+                                     <option value="acopio">Pagado en Acopio</option>
+                                 </select>
                              </div>
                          </div>
 
@@ -1003,7 +1003,7 @@
                            </div>
                            <div class="form-group form-group-full">
                                <button type="submit" style="background-color: #27ae60;">Registrar Ingreso en Planta</button>
-                           </div>
+                          </div>
                       </div>
                  </form>
              </div>
@@ -1265,7 +1265,7 @@
                      <button type="button" class="btn-print" onclick="copiarTextoPresupuestoWhatsApp()" style="background: #27ae60; flex: 1;">💬 Copiar Texto para WhatsApp</button>
                  </div>
              </div>
-        </div>
+         </div>
     </div>
 
     <script>
@@ -1852,7 +1852,6 @@
             
             let totalMetrosCuadrados = 0, totalDineroCliente = 0;
             
-            // Contenedor con ID único para capturar el PDF
             let html = `<div id="pdf-historial-content" style="background: #fff; padding: 10px; border-radius: 4px;">`;
             html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
             html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong>`;
@@ -1885,45 +1884,60 @@
             html += `<span>Total a Cobrar (+ IVA): $${totalDineroCliente.toLocaleString()}</span>`;
             html += `</div></div>`;
 
-            // Botón para descargar el PDF debajo de los resultados
-            html += `<div style="margin-top: 12px; text-align: right;">`;
+            // Botones de exportación (PDF y WhatsApp)
+            html += `<div style="margin-top: 12px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">`;
             html += `<button type="button" class="btn-print" onclick="exportarHistorialPDF('${clienteBuscado}')" style="background: #2980b9; padding: 8px 15px; font-size: 12px;">📥 Descargar Historial en PDF</button>`;
+            html += `<button type="button" class="btn-print" onclick="enviarHistorialWhatsApp('${clienteBuscado}', ${totalMetrosCuadrados.toFixed(2)}, ${totalDineroCliente})" style="background: #27ae60; padding: 8px 15px; font-size: 12px;">💬 Enviar Resumen por WhatsApp</button>`;
             html += `</div>`;
 
             clientHistoryResults.innerHTML = html;
         }
-            
-            let totalMetrosCuadrados = 0, totalDineroCliente = 0;
-            let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
-            html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong></div>`;
-            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
-            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th><th>Acción</th></tr></thead><tbody>`;
-            
-            pedidosCliente.forEach(p => {
-                let vol = parseFloat(p.cantidad) || 0;
-                totalMetrosCuadrados += vol;
-                let precioU = p.precioUnitario || 0;
-                let subHormigon = vol * precioU;
-                let subExtras = 0;
-                if (p.aditivos && Array.isArray(p.aditivos)) {
-                    p.aditivos.forEach(item => {
-                        if (typeof item === 'object') subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-                    });
-                }
-                let cond = p.condicionPago || 'normal';
-                let totalItem = (cond === 'normal') ? (subHormigon + subExtras) : 0;
-                if (cond === 'normal') totalDineroCliente += totalItem;
-                let condTexto = cond === 'compensacion' ? 'Trueque' : (cond === 'acopio' ? 'Acopio' : 'Cta. Cte.');
-                html += `<tr><td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td><td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td><td><strong>$${totalItem.toLocaleString()}</strong></td><td><button type="button" class="btn-duplicate" onclick="duplicateOrder('${p.firebaseId}')" style="padding: 3px 6px; font-size: 10px;">Duplicar</button></td></tr>`;
-            });
-            html += `</tbody></table></div>`;
-            
-            html += `<div style="margin-top: 10px; background: #d4efdf; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; color: #145a32;">`;
-            html += `<span>Volumen Total: ${totalMetrosCuadrados.toFixed(2)} m³</span>`;
-            html += `<span>Total a Cobrar (+ IVA): $${totalDineroCliente.toLocaleString()}</span>`;
-            html += `</div>`;
 
-            clientHistoryResults.innerHTML = html;
+        async function exportarHistorialPDF(nombreCliente) {
+            const elemento = document.getElementById('pdf-historial-content');
+            if (!elemento) return;
+            
+            try {
+                const canvas = await html2canvas(elemento, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.setFontSize(16);
+                pdf.text("GyE S.R.L. - División Hormigón", 14, 15);
+                pdf.setFontSize(11);
+                pdf.text(`Resumen de Cuenta / Historial: ${nombreCliente}`, 14, 22);
+                pdf.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
+                
+                pdf.addImage(imgData, 'JPEG', 14, 35, pdfWidth - 28, pdfHeight);
+                
+                let nombreArchivo = `Historial_${nombreCliente.replace(/\s+/g, '_')}.pdf`;
+                pdf.save(nombreArchivo);
+            } catch (e) {
+                console.error(e);
+                alert("Hubo un error al generar el PDF del historial.");
+            }
+        }
+
+        function enviarHistorialWhatsApp(nombreCliente, totalMetros, totalDinero) {
+            const fechaDesde = document.getElementById('client-start-date').value || 'Inicio';
+            const fechaHasta = document.getElementById('client-end-date').value || 'Actualidad';
+
+            let mensaje = `🏗️ *RESUMEN DE CUENTA - GYE S.R.L.*\n`;
+            mensaje += `👤 *Cliente:* ${nombreCliente}\n`;
+            mensaje += `📅 *Período:* ${fechaDesde} al ${fechaHasta}\n\n`;
+            mensaje += `📦 *Volumen Total:* ${totalMetros} m³\n`;
+            mensaje += `💰 *Total a Cobrar:* $${totalDinero.toLocaleString('es-AR')} (+ IVA)\n\n`;
+            mensaje += `Quedamos a disposición por cualquier consulta. ¡Saludos!`;
+
+            navigator.clipboard.writeText(mensaje).then(() => {
+                alert("¡Resumen copiado al portapapeles! Ya podés pegarlo en el chat de WhatsApp.");
+            }).catch(err => {
+                console.error("Error al copiar texto: ", err);
+                alert("No se pudo copiar el texto automáticamente.");
+            });
         }
 
         function calcularRangoFechas() {
@@ -2111,84 +2125,4 @@
                     
                     let aditivosHtml = '';
                     if (order.aditivos && Array.isArray(order.aditivos) && order.aditivos.length > 0) {
-                        aditivosHtml = '<div style="margin-top: 4px; font-size: 11px; color: #d35400;"><strong>Extras:</strong><ul style="margin: 0; padding-left: 15px;">';
-                        order.aditivos.forEach(item => {
-                            if (typeof item === 'object') {
-                                let costoItem = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-                                subExtras += costoItem;
-                                aditivosHtml += `<li>${item.nombre} (Cant: ${item.cantidad}) ${item.precio > 0 ? '- $' + costoItem.toLocaleString() + ' + IVA' : ''}</li>`;
-                            } else if (typeof item === 'string') {
-                                aditivosHtml += `<li>${item}</li>`;
-                            }
-                        });
-                        aditivosHtml += '</ul></div>';
-                    }
-
-                    let condicion = order.condicionPago || 'normal';
-                    let totalItem = 0;
-                    if (condicion === 'normal') {
-                        totalItem = subHormigon + subExtras;
-                        dailyMoneySum += totalItem;
-                    }
-                    
-                    let facturaBadge = order.facturado ? `<span class="print-badge-factura" style="background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">FACTURADO</span>` : `<span class="print-badge-factura" style="background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">SIN FACTURA</span>`;
-                    let camionesBadges = (order.camiones && order.camiones.length > 0) ? order.camiones.map((c, idx) => `<span class="print-badge-camion" style="background: #2c3e50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin: 1px;">${idx + 1}º ${c}</span>`).join(' ') : `<span style="color: #95a5a6; font-style: italic;">Sin asignar</span>`;
-
-                    let accionesHtml = '';
-                    let btnEntregadoHtml = `<button type="button" class="btn-edit" onclick="toggleEntregado('${order.firebaseId}')" style="background-color: ${order.entregado ? '#7f8c8d' : '#27ae60'}; padding: 4px 8px; font-size: 11px; margin-bottom: 3px;">${order.entregado ? '↩️ Deshacer' : '✅ Entregado'}</button>`;
-
-                    if (currentUserRole === 'admin') {
-                        accionesHtml = `<div class="action-buttons">${btnEntregadoHtml}<button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar</button><button class="btn-duplicate" onclick="duplicateOrder('${order.firebaseId}')">Duplicar</button><button class="btn-delete" onclick="deleteOrder('${order.firebaseId}')">Borrar</button></div>`;
-                    } else if (currentUserRole === 'plantista') {
-                        accionesHtml = `<div class="action-buttons">${btnEntregadoHtml}<button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar Vol.</button></div>`;
-                    } else if (currentUserRole === 'factura') {
-                        accionesHtml = `<button class="btn-edit" onclick="editOrder('${order.firebaseId}')" style="background-color: #27ae60;">Asignar Precio</button>`;
-                    } else {
-                        accionesHtml = `<button class="btn-edit" onclick="editOrder('${order.firebaseId}')">Editar Vol.</button>`;
-                    }
-
-                    const row = document.createElement('tr');
-                    if (order.entregado) {
-                        row.className = 'pedido-entregado';
-                    }
-
-                    row.innerHTML = `
-                        <td><strong>${order.hora}</strong></td>
-                        <td style="text-align: center;">${camionesBadges}</td>
-                        <td>${order.cliente}<br>${facturaBadge}</td>
-                        <td><strong>${order.tipoHormigon}</strong>${aditivosHtml}</td>
-                        <td>${order.ubicacion}</td>
-                        <td><strong>${order.cantidad}</strong></td>
-                        <td class="factura-only">H°: $${precioU.toLocaleString()} + IVA ${subExtras > 0 ? '<br><small>Extras: $' + subExtras.toLocaleString() + '</small>' : ''}</td>
-                        <td class="factura-only" style="font-weight: bold; color: ${condicion === 'normal' ? '#27ae60' : '#7f8c8d'};">${condicion === 'normal' ? '$' + totalItem.toLocaleString() + ' + IVA' : 'Compensado'}</td>
-                        <td><span class="print-obs" style="font-size: 12px; color: #e67e22;">${order.observaciones || '-'}</span></td>
-                        <td class="col-acciones">${accionesHtml}</td>
-                    `;
-                    ordersList.appendChild(row);
-                });
-            }
-            dailyTotalEl.textContent = dailySum.toFixed(2);
-            dailyMoneyTotalEl.textContent = dailyMoneySum.toLocaleString();
-
-            if (currentUserRole === 'admin') {
-                const currentMonth = selectedDate.substring(0, 7);
-                let monthlySum = 0, monthlyCount = 0;
-                orders.forEach(order => {
-                    if (!isNaN(parseFloat(order.cantidad)) && order.fecha.startsWith(currentMonth)) monthlySum += parseFloat(order.cantidad);
-                    if (order.fecha.startsWith(currentMonth)) monthlyCount++;
-                });
-                monthlyTotalEl.textContent = monthlySum.toFixed(2);
-                monthlyCountEl.textContent = monthlyCount;
-                actualizarListasClientes();
-                if (selectClientHistory.value) verHistorialCliente();
-            }
-        }
-        filterDateInput.addEventListener('change', render);
-
-        // Inicializar la primera fila de ítems de presupuesto al cargar
-        setTimeout(() => {
-            agregarFilaItemPresupuesto();
-        }, 800);
-    </script>
-</body>
-</html>
+                        aditivosHtml = '<div style="margin-top: 4px; font-size: 11px; color: #d35400;"><strong>Extras:</strong><ul style="margin: 0; padding
