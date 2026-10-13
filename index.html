@@ -1851,6 +1851,49 @@
             }
             
             let totalMetrosCuadrados = 0, totalDineroCliente = 0;
+            
+            // Contenedor con ID único para capturar el PDF
+            let html = `<div id="pdf-historial-content" style="background: #fff; padding: 10px; border-radius: 4px;">`;
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
+            html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong>`;
+            html += `<span style="font-size: 11px; color: #555;">Período: ${fechaDesde || 'Inicio'} al ${fechaHasta || 'Actualidad'}</span></div>`;
+            
+            html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
+            html += `<table style="margin:0; font-size:12px;"><thead><tr><th>Fecha</th><th>Hora</th><th>Obra</th><th>H° / Extras</th><th>Volumen</th><th>Condición</th><th>Total Pedido</th></tr></thead><tbody>`;
+            
+            pedidosCliente.forEach(p => {
+                let vol = parseFloat(p.cantidad) || 0;
+                totalMetrosCuadrados += vol;
+                let precioU = p.precioUnitario || 0;
+                let subHormigon = vol * precioU;
+                let subExtras = 0;
+                if (p.aditivos && Array.isArray(p.aditivos)) {
+                    p.aditivos.forEach(item => {
+                        if (typeof item === 'object') subExtras += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+                    });
+                }
+                let cond = p.condicionPago || 'normal';
+                let totalItem = (cond === 'normal') ? (subHormigon + subExtras) : 0;
+                if (cond === 'normal') totalDineroCliente += totalItem;
+                let condTexto = cond === 'compensacion' ? 'Trueque' : (cond === 'acopio' ? 'Acopio' : 'Cta. Cte.');
+                html += `<tr><td>${p.fecha}</td><td>${p.hora}</td><td>${p.ubicacion}</td><td><strong>${p.tipoHormigon}</strong></td><td>${p.cantidad}</td><td>${condTexto}</td><td><strong>$${totalItem.toLocaleString()}</strong></td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            
+            html += `<div style="margin-top: 10px; background: #d4efdf; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; color: #145a32;">`;
+            html += `<span>Volumen Total: ${totalMetrosCuadrados.toFixed(2)} m³</span>`;
+            html += `<span>Total a Cobrar (+ IVA): $${totalDineroCliente.toLocaleString()}</span>`;
+            html += `</div></div>`;
+
+            // Botón para descargar el PDF debajo de los resultados
+            html += `<div style="margin-top: 12px; text-align: right;">`;
+            html += `<button type="button" class="btn-print" onclick="exportarHistorialPDF('${clienteBuscado}')" style="background: #2980b9; padding: 8px 15px; font-size: 12px;">📥 Descargar Historial en PDF</button>`;
+            html += `</div>`;
+
+            clientHistoryResults.innerHTML = html;
+        }
+            
+            let totalMetrosCuadrados = 0, totalDineroCliente = 0;
             let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">`;
             html += `<strong style="font-size: 14px; color: var(--primary-color);">Historial de ${clienteBuscado}</strong></div>`;
             html += `<div style="max-height: 250px; overflow-y: auto; border: 1px solid #a9cce3; background: #fff; padding: 8px; border-radius: 4px;">`;
