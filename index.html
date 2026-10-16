@@ -1894,33 +1894,69 @@
         }
 
         async function exportarHistorialPDF(nombreCliente) {
-            const elemento = document.getElementById('pdf-historial-content');
-            if (!elemento) return;
-            
-            try {
-                const canvas = await html2canvas(elemento, { scale: 2, useCORS: true });
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                
-                pdf.setFontSize(16);
-                pdf.text("GyE S.R.L. - División Hormigón", 14, 15);
-                pdf.setFontSize(11);
-                pdf.text(`Resumen de Cuenta / Historial: ${nombreCliente}`, 14, 22);
-                pdf.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
-                
-                pdf.addImage(imgData, 'JPEG', 14, 35, pdfWidth - 28, pdfHeight);
-                
-                let nombreArchivo = `Historial_${nombreCliente.replace(/\s+/g, '_')}.pdf`;
-                pdf.save(nombreArchivo);
-            } catch (e) {
-                console.error(e);
-                alert("Hubo un error al generar el PDF del historial.");
-            }
+    const elemento = document.getElementById('pdf-historial-content');
+    if (!elemento) return;
+    
+    // Buscar el contenedor con scroll interno para expandirlo temporalmente
+    const scrollableDiv = elemento.querySelector('div[style*="max-height"]');
+    const originalMaxHeight = scrollableDiv ? scrollableDiv.style.maxHeight : '';
+    const originalOverflow = scrollableDiv ? scrollableDiv.style.overflowY : '';
+    
+    if (scrollableDiv) {
+        scrollableDiv.style.maxHeight = 'none';
+        scrollableDiv.style.overflowY = 'visible';
+    }
+
+    try {
+        const canvas = await html2canvas(elemento, { scale: 2, useCORS: true });
+        
+        // Restaurar los estilos originales de la pantalla
+        if (scrollableDiv) {
+            scrollableDiv.style.maxHeight = originalMaxHeight;
+            scrollableDiv.style.overflowY = originalOverflow;
         }
 
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        let heightLeft = imgHeight;
+        let position = 35; // Margen superior para el encabezado
+
+        // Encabezado fijo en la primera página
+        pdf.setFontSize(16);
+        pdf.text("GyE S.R.L. - División Hormigón", 14, 15);
+        pdf.setFontSize(11);
+        pdf.text(`Resumen de Cuenta / Historial: ${nombreCliente}`, 14, 22);
+        pdf.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
+
+        // Imprimir imagen con soporte para múltiples páginas si es muy largo
+        pdf.addImage(imgData, 'JPEG', 14, position, pdfWidth - 28, imgHeight);
+        heightLeft -= (pdfHeight - position);
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 14, position, pdfWidth - 28, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+
+        let nombreArchivo = `Historial_${nombreCliente.replace(/\s+/g, '_')}.pdf`;
+        pdf.save(nombreArchivo);
+    } catch (e) {
+        // Asegurar que se restaure en caso de error
+        if (scrollableDiv) {
+            scrollableDiv.style.maxHeight = originalMaxHeight;
+            scrollableDiv.style.overflowY = originalOverflow;
+        }
+        console.error(e);
+        alert("Hubo un error al generar el PDF del historial.");
+    }
+}
         function enviarHistorialWhatsApp(nombreCliente, totalMetros, totalDinero) {
             const fechaDesde = document.getElementById('client-start-date').value || 'Inicio';
             const fechaHasta = document.getElementById('client-end-date').value || 'Actualidad';
